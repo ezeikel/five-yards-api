@@ -12,7 +12,7 @@ mongoose.connection.on('error', (err) => {
 });
 
 // Load mongodb collections on start up
-//require('./models/User');
+require('./models/User');
 //require('./models/Shop');
 //require('./models/Review');
 
