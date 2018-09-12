@@ -20,7 +20,7 @@ module.exports.typeDefs = gql`
   }
 
   type Mutation {
-    newUser(email: String, fullName: String, username: String, password: String, passwordConfirm: String): User
+    signup(email: String, fullName: String, username: String, password: String): User
   }
 `;
 
@@ -30,6 +30,6 @@ module.exports.resolvers = {
     users: () => User.find()
   },
   Mutation: {
-    newUser: (obj, args, context) => User(args).save()
+    signup: (obj, args, context) => User(args).save()
   }
 };
