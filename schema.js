@@ -7,16 +7,14 @@ const User = mongoose.model('User');
 module.exports.typeDefs = gql`
   # The "Query" type is the root of all GraphQL queries.
   type Query {
-    users: [User]
+    users: [User]!
   }
 
   type User {
-    id: ID
-    email: String
-    fullName: String
-    username: String
-    resetPasswordToken: String
-    resetPasswordTokenExpires: String
+    id: ID!
+    email: String!
+    fullName: String!
+    username: String!
   }
 
   type Mutation {
