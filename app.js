@@ -1,6 +1,7 @@
 const express = require('express');
 const path = require('path');
 const morgan = require('morgan');
+const cookierParser = require('cookie-parser');
 const { ApolloServer } = require('apollo-server-express');
 const { typeDefs, resolvers } = require('./schema');
 
@@ -23,9 +24,21 @@ if (process.env.SILENCE_LOGS !== "true") {
   app.use(morgan("dev"));
 }
 
+app.use(cookierParser());
+
+app.use((req, res, next) => {
+  const { token } = req.cookies;
+  if (token) {
+    const { userId } = jwt.verify(token, process.env.APP_SECRET);
+    req.userId = userId;
+  }
+  next();
+});
+
 const server = new ApolloServer({
   typeDefs,
-  resolvers
+  resolvers,
+  context: req => ({ ...req })
 });
 // graphQL endpoint
 server.applyMiddleware({ app, path: '/graphql' });
