@@ -4,6 +4,7 @@ const path = require('path');
 const morgan = require('morgan');
 const cookierParser = require('cookie-parser');
 const mongoose = require('mongoose');
+const jwt = require('jsonwebtoken');
 const User = mongoose.model('User');
 const { ApolloServer } = require('apollo-server-express');
 const { typeDefs, resolvers } = require('./schema');
@@ -16,14 +17,13 @@ const allowedOrigins = ['http://localhost:3000', 'https://five-yards.herokuapp.c
 const corsOptions = {
   origin: (origin, callback) => {
     if (allowedOrigins.includes(origin)) {
-      console.log('Here!');
       callback(null, true);
     } else {
       callback(new Error('Not allowed by CORS'));
     }
   },
-  allowedHeaders: ['Access-Control-Allow-Headers', 'Origin,X-Requested-With, Content-Type, Accept'],
-  credentials: true
+  credentials: true,
+  optionsSuccessStatus: 200
 }
 
 app.use(cors(corsOptions));
@@ -63,7 +63,7 @@ const server = new ApolloServer({
   context: req => ({ ...req })
 });
 // graphQL endpoint
-server.applyMiddleware({ app, path: '/graphql' });
+server.applyMiddleware({ app, path: '/graphql', cors: false });
 
 app.use('/public', express.static(path.join(__dirname, '/public')));
 
