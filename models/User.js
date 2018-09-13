@@ -28,8 +28,8 @@ const userSchema = new Schema({
     trim: true,
     lowercase: true
   },
-  resetPasswordToken: String,
-  resetPasswordExpires: Date
+  password: String,
+  permissions: [String]
   // TODO: add favourites here
   // hearts: [
   //   { type: mongoose.Schema.ObjectId, ref: 'Shop' }
