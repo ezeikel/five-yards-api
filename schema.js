@@ -3,6 +3,8 @@ const { GraphQLScalarType } = require('graphql');
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const { randomBytes } = require('crypto');
+const { promisify } = require('util');
 const User = mongoose.model('User');
 
 // defining "shape" of data
@@ -21,6 +23,7 @@ module.exports.typeDefs = gql`
   }
 
   type Query {
+    me: User
     users: [User]!
   }
 
@@ -88,8 +91,10 @@ module.exports.typeDefs = gql`
   }
 
   type Mutation {
-    signup(email: String, fullName: String, username: String, password: String): User
+    signup(email: String!, fullName: String!, username: String!, password: String!): User!
+    signin(email: String!, password: String!): User!
     signout: SuccessMessage
+    requestReset(email: String!): SuccessMessage
   }
 `;
 
@@ -112,6 +117,14 @@ module.exports.resolvers = {
     },
   }),
   Query: {
+    me: (parent, args, context, info) => {
+      // check if there is a current user id
+      if (!context.req.userId) {
+        return null;
+      }
+
+      return User.findOne({ id: context.req.id });
+    },
     users: () => User.find()
   },
   Mutation: {
@@ -136,9 +149,56 @@ module.exports.resolvers = {
       return user;
     },
 
-    signout(parent, args, context, info) {
+    signin: async(parent, { email, password }, context, info) => {
+      // check if there is a user with this email
+      const user = await User.findOne({ email: email });
+
+      if (!user) {
+        console.log('No user!');
+        throw new Error(`No such user found for email ${email}`);
+      }
+
+      // check if ther password is correct
+      const valid = await bcrypt.compare(password, user.password);
+
+      if (!valid) {
+        throw new Error('Invalid Password!');
+      }
+
+      // generate jwt token
+      const token = jwt.sign({ userId: user.id }, process.env.APP_SECRET);
+
+      // set the cookie with the token
+      context.res.cookie('token', token, {
+        httpOnly: true,
+        maxAge: 1000 * 60 * 60 * 24 * 365,
+      });
+
+      // return the user
+      return user;
+    },
+
+    signout: (parent, args, context, info) => {
       context.res.clearCookie('token');
       return { message: 'goodbye!' };
+    },
+
+    requestReset: async (parent, args, context, info) => {
+      // check if this is a real user
+      const user = await User.find({ email: args.email });
+
+      if (!user) {
+        throw new Error(`No such user found with email ${args.email}`);
+      }
+
+      // set a reset token and expiry for that user
+      const randomBytesPromisified = promisify(randomBytes);
+      const resetToken = (await randomBytesPromisified(20)).toString('hex');
+      const resetTokenExpiry = Date.now() + 3600000; // 1 hour from now
+      // TODO: Finish this off
+
+      // return the message
+      return { message: 'Thanks!' };
     }
   }
 };
