@@ -16,10 +16,11 @@ const app = express();
 const allowedOrigins = ['http://localhost:3000', 'https://five-yards.herokuapp.com'];
 const corsOptions = {
   origin: (origin, callback) => {
-    if (allowedOrigins.includes(origin)) {
+    // origin is undefined if same-origin
+    if (allowedOrigins.includes(origin) || origin === undefined) {
       callback(null, true);
     } else {
-      callback(new Error('Not allowed by CORS'));
+      callback(new Error(`${origin} is not allowed by CORS.`));
     }
   },
   credentials: true,
@@ -65,8 +66,6 @@ const server = new ApolloServer({
 });
 // graphQL endpoint
 server.applyMiddleware({ app, path: '/graphql', cors: false });
-
-app.use('/public', express.static(path.join(__dirname, '/public')));
 
 // export it so we can start the site in start.js
 module.exports = app;

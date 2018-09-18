@@ -117,13 +117,15 @@ module.exports.resolvers = {
     },
   }),
   Query: {
-    me: (parent, args, context, info) => {
+    me: async (parent, args, context, info) => {
       // check if there is a current user id
       if (!context.req.userId) {
         return null;
       }
 
-      return User.findOne({ id: context.req.id });
+      const user = await User.findOne({ _id: context.req.userId });
+
+      return user;
     },
     users: () => User.find()
   },
@@ -154,7 +156,6 @@ module.exports.resolvers = {
       const user = await User.findOne({ email: email });
 
       if (!user) {
-        console.log('No user!');
         throw new Error(`No such user found for email ${email}`);
       }
 
