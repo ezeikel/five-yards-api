@@ -92,7 +92,7 @@ module.exports.typeDefs = gql`
 
   type Mutation {
     signup(email: String!, fullName: String!, username: String!, password: String!): User!
-    signin(email: String!, password: String!): User!
+    signin(email: String!, password: String!): ID!
     signout: SuccessMessage
     requestReset(email: String!): SuccessMessage
   }
@@ -117,7 +117,7 @@ module.exports.resolvers = {
     },
   }),
   Query: {
-    me: async (parent, args, context, info) => {
+    me: async (_, args, context, info) => {
       // check if there is a current user id
       if (!context.req.userId) {
         return null;
@@ -130,7 +130,7 @@ module.exports.resolvers = {
     users: () => User.find()
   },
   Mutation: {
-    signup: async (parent, args, context, info) => {
+    signup: async (_, args, context, info) => {
       args.email = args.email.toLowerCase();
 
       // hash plaintext password with given number of saltRounds before storing in db
@@ -151,7 +151,7 @@ module.exports.resolvers = {
       return user;
     },
 
-    signin: async(parent, { email, password }, context, info) => {
+    signin: async(_, { email, password }, context, info) => {
       // check if there is a user with this email
       const user = await User.findOne({ email: email });
 
@@ -175,16 +175,16 @@ module.exports.resolvers = {
         maxAge: 1000 * 60 * 60 * 24 * 365,
       });
 
-      // return the user
-      return user;
+      // return the user id
+      return user.id;
     },
 
-    signout: (parent, args, context, info) => {
+    signout: (_, args, context, info) => {
       context.res.clearCookie('token');
       return { message: 'goodbye!' };
     },
 
-    requestReset: async (parent, args, context, info) => {
+    requestReset: async (_, args, context, info) => {
       // check if this is a real user
       const user = await User.find({ email: args.email });
 
