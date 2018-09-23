@@ -13,13 +13,16 @@ const { typeDefs, resolvers } = require('./schema');
 const app = express();
 
 // enable cors
-const allowedOrigins = ['http://localhost:3000', 'http://localhost:7777', 'https://five-yards.herokuapp.com'];
+const allowedOrigins = ['http://localhost:3000', 'http://localhost:7777', 'http://192.168.1.146:3000', 'http://five-yards.herokuapp.com', 'https://five-yards.herokuapp.com'];
 const corsOptions = {
+  optionsSuccessStatus: 200,
   origin: (origin, callback) => {
     // origin is undefined if same-origin
     if (allowedOrigins.includes(origin) || origin === undefined) {
+      console.log('Allowed.');
       callback(null, true);
     } else {
+      console.log('NOT allowed.');
       callback(new Error(`${origin} is not allowed by CORS.`));
     }
   },
