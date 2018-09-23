@@ -92,7 +92,7 @@ module.exports.typeDefs = gql`
 
   type Mutation {
     signup(email: String!, fullName: String!, username: String!, password: String!): User!
-    signin(email: String!, password: String!): ID!
+    signin(email: String!, password: String!): User!
     signout: SuccessMessage
     requestReset(email: String!): SuccessMessage
   }
@@ -175,8 +175,16 @@ module.exports.resolvers = {
         maxAge: 1000 * 60 * 60 * 24 * 365,
       });
 
-      // return the user id
-      return user.id;
+      // return relevant user properties
+      const { id, fullName, username, permissions } = user;
+
+      return {
+        id,
+        email,
+        fullName,
+        username,
+        permissions
+      }
     },
 
     signout: (_, args, context, info) => {

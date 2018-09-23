@@ -19,14 +19,13 @@ const corsOptions = {
   origin: (origin, callback) => {
     // origin is undefined if same-origin
     if (allowedOrigins.includes(origin) || origin === undefined) {
-      console.log('Allowed.');
       callback(null, true);
     } else {
-      console.log('NOT allowed.');
       callback(new Error(`${origin} is not allowed by CORS.`));
     }
   },
   credentials: true,
+  // for older browsers that can't handle 204
   optionsSuccessStatus: 200
 }
 
@@ -39,7 +38,7 @@ if (process.env.SILENCE_LOGS !== "true") {
 
 app.use(cookierParser());
 
-// check if token exists and if it does get the userId from it
+// authenticate user via token on every request
 app.use((req, res, next) => {
   const { token } = req.cookies;
   if (token) {
