@@ -117,7 +117,7 @@ module.exports.resolvers = {
     },
   }),
   Query: {
-    me: async (_, args, context, info) => {
+    me: async (_, args, context) => {
       // check if there is a current user id
       if (!context.req.userId) {
         return null;
@@ -130,28 +130,47 @@ module.exports.resolvers = {
     users: () => User.find()
   },
   Mutation: {
-    signup: async (_, args, context, info) => {
-      args.email = args.email.toLowerCase();
+    signup: async (_, { email, fullName, username, password }, context) => {
+      try {
+        email = email.toLowerCase();
 
-      // hash plaintext password with given number of saltRounds before storing in db
-      const password = await bcrypt.hash(args.password, 10);
+        const exists = await User.findOne({ email });
+        if (exists) {
+          throw new Error(`User with email: ${email} already exists!`);
+        }
 
-      // save new user to the db
-      const user = await User({ ...args, password, permissions: 'USER' }).save();
+        // hash plaintext password with given number of saltRounds before storing in db
+        const hashedPassword = await bcrypt.hash(password, 10);
 
-      // generate signed json web token with user.id as payload and APP_SECRET as private key
-      const token = jwt.sign({ userId: user.id }, process.env.APP_SECRET);
+        // save new user to the db with default USER permission
+        const user = await User({ email, fullName, username, password: hashedPassword, permissions: 'USER' }).save();
 
-      // return 'token' cookie as a reponse header with jwt as its value. Expires in one year.
-      context.res.cookie('token', token, {
-        maxAge: 1000 * 60 * 60 * 24 * 365,
-        httpOnly: true
-      });
+        // generate signed json web token with user.id as payload and APP_SECRET as private key
+        const token = jwt.sign({ userId: user.id }, process.env.APP_SECRET);
 
-      return user;
+        // return 'token' cookie as a reponse header with jwt as its value. Expires in one year.
+        context.res.cookie('token', token, {
+          maxAge: 1000 * 60 * 60 * 24 * 365,
+          httpOnly: true
+        });
+
+      // return relevant user properties
+      const { id, permissions } = user;
+
+      return {
+        id,
+        email,
+        fullName,
+        username,
+        permissions
+      }
+
+      } catch (e) {
+        throw new Error(e);
+      }
     },
 
-    signin: async(_, { email, password }, context, info) => {
+    signin: async(_, { email, password }, context) => {
       // check if there is a user with this email
       const user = await User.findOne({ email: email });
 
@@ -187,12 +206,12 @@ module.exports.resolvers = {
       }
     },
 
-    signout: (_, args, context, info) => {
+    signout: (_, args, context) => {
       context.res.clearCookie('token');
       return { message: 'goodbye!' };
     },
 
-    requestReset: async (_, args, context, info) => {
+    requestReset: async (_, args, context) => {
       // check if this is a real user
       const user = await User.find({ email: args.email });
 

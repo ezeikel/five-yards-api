@@ -13,7 +13,7 @@ const { typeDefs, resolvers } = require('./schema');
 const app = express();
 
 // enable cors
-const allowedOrigins = ['http://localhost:3000', 'http://localhost:7777', 'http://192.168.1.146:3000', 'http://five-yards.herokuapp.com', 'https://five-yards.herokuapp.com'];
+const allowedOrigins = ['http://localhost:3000', 'http://localhost:7777', 'http://five-yards.herokuapp.com', 'https://five-yards.herokuapp.com'];
 const corsOptions = {
   optionsSuccessStatus: 200,
   origin: (origin, callback) => {
@@ -50,12 +50,10 @@ app.use((req, res, next) => {
 
 // get User from their id
 app.use(async (req, res, next) => {
-  console.log({userId: req.userId});
-
   if (!req.userId) return next();
 
   // bring back specific fields from User
-  const user = await User.find({ id: req.id }, { permissions: 1, email: 1, name: 1 });
+  const user = await User.find({ id: req.id }, { permissions: 1, email: 1, fullName: 1 });
   req.user = user;
   next();
 });

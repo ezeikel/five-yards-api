@@ -28,8 +28,19 @@ const userSchema = new Schema({
     trim: true,
     lowercase: true
   },
-  password: String,
-  permissions: [String]
+  password: {
+    type: String,
+    minlength: 6
+  },
+  permissions: [String],
+  createdAt: {
+    type: Date,
+    default: Date.now
+  },
+  updatedAt: {
+    type: Date,
+    default: Date.now
+  }
   // TODO: add favourites here
   // hearts: [
   //   { type: mongoose.Schema.ObjectId, ref: 'Shop' }
