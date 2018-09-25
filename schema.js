@@ -208,7 +208,7 @@ module.exports.resolvers = {
 
     signout: (_, args, context) => {
       context.res.clearCookie('token');
-      return { message: 'goodbye!' };
+      return { message: 'Goodbye!' };
     },
 
     requestReset: async (_, args, context) => {
