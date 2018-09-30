@@ -131,28 +131,27 @@ module.exports.resolvers = {
   },
   Mutation: {
     signup: async (_, { email, fullName, username, password }, context) => {
-      try {
         email = email.toLowerCase();
 
-        const exists = await User.findOne({ email });
-        if (exists) {
-          throw new Error(`User with email: ${email} already exists!`);
-        }
+      const exists = await User.findOne({ email });
+      if (exists) {
+        throw new Error('email: Hmm, a user with that email already exists. Use another one or sign in.');
+      }
 
-        // hash plaintext password with given number of saltRounds before storing in db
-        const hashedPassword = await bcrypt.hash(password, 10);
+      // hash plaintext password with given number of saltRounds before storing in db
+      const hashedPassword = await bcrypt.hash(password, 10);
 
-        // save new user to the db with default USER permission
-        const user = await User({ email, fullName, username, password: hashedPassword, permissions: 'USER' }).save();
+      // save new user to the db with default USER permission
+      const user = await User({ email, fullName, username, password: hashedPassword, permissions: 'USER' }).save();
 
-        // generate signed json web token with user.id as payload and APP_SECRET as private key
-        const token = jwt.sign({ userId: user.id }, process.env.APP_SECRET);
+      // generate signed json web token with user.id as payload and APP_SECRET as private key
+      const token = jwt.sign({ userId: user.id }, process.env.APP_SECRET);
 
-        // return 'token' cookie as a reponse header with jwt as its value. Expires in one year.
-        context.res.cookie('token', token, {
-          maxAge: 1000 * 60 * 60 * 24 * 365,
-          httpOnly: true
-        });
+      // return 'token' cookie as a reponse header with jwt as its value. Expires in one year.
+      context.res.cookie('token', token, {
+        maxAge: 1000 * 60 * 60 * 24 * 365,
+        httpOnly: true
+      });
 
       // return relevant user properties
       const { id, permissions } = user;
@@ -164,10 +163,6 @@ module.exports.resolvers = {
         username,
         permissions
       }
-
-      } catch (e) {
-        throw new Error(e);
-      }
     },
 
     signin: async(_, { email, password }, context) => {
@@ -175,14 +170,14 @@ module.exports.resolvers = {
       const user = await User.findOne({ email: email });
 
       if (!user) {
-        throw new Error('email: No user found with that email');
+        throw new Error('email: Hmm, we couldn\'t find that email in our records. Try again.');
       }
 
       // check if ther password is correct
       const valid = await bcrypt.compare(password, user.password);
 
       if (!valid) {
-        throw new Error('password: Invalid password');
+        throw new Error('password: Hmm, that password doesn\'t match the one we have on record. Try again.');
       }
 
       // generate jwt token
