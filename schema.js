@@ -175,14 +175,14 @@ module.exports.resolvers = {
       const user = await User.findOne({ email: email });
 
       if (!user) {
-        throw new Error(`No such user found for email ${email}`);
+        throw new Error('email: No user found with that email');
       }
 
       // check if ther password is correct
       const valid = await bcrypt.compare(password, user.password);
 
       if (!valid) {
-        throw new Error('Invalid Password!');
+        throw new Error('password: Invalid password');
       }
 
       // generate jwt token
