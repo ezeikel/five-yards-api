@@ -58,7 +58,6 @@ module.exports.typeDefs = gql`
     password: String!
     username: String!
     fullName: String!
-    orders: [Order!]!
     resetToken: String
     resetTokenExpiry: String
     cart: [CartItem!]!
@@ -95,6 +94,7 @@ module.exports.typeDefs = gql`
     signin(email: String!, password: String!): User!
     signout: SuccessMessage
     requestReset(email: String!): SuccessMessage
+    resetPassword(resetToken: String!, password: String!, confirmPassword: String!): User!
   }
 `;
 
@@ -218,8 +218,25 @@ module.exports.resolvers = {
       // set a reset token and expiry for that user
       const randomBytesPromisified = promisify(randomBytes);
       const resetToken = (await randomBytesPromisified(20)).toString('hex');
-      const resetTokenExpiry = Date.now() + 3600000; // 1 hour from now
-      // TODO: Finish this off
+      const resetTokenExpiry = Date.now() + 36000000; // 1 hour from now
+
+      // TODO: Finish this
+      // We dont have resetToken, resetTokenExpiry fields in db
+      // Does error but doesnt seem to update
+      const res = User.updateOne({
+        filter: { email: args.email  },
+        update: {
+          $set: {
+            resetToken,
+            resetTokenExpiry
+          }
+        }
+      });
+
+      console.log(res);
+
+      // TODO:
+      // email the user the reset token
 
       // return the message
       return { message: 'Thanks!' };
