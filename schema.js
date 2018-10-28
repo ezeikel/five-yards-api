@@ -131,7 +131,7 @@ module.exports.resolvers = {
   },
   Mutation: {
     signup: async (_, { email, fullName, username, password }, context) => {
-        email = email.toLowerCase();
+      email = email.toLowerCase();
 
       const exists = await User.findOne({ email });
       if (exists) {
@@ -146,6 +146,7 @@ module.exports.resolvers = {
 
       // generate signed json web token with user.id as payload and APP_SECRET as private key
       const token = jwt.sign({ userId: user.id }, process.env.APP_SECRET);
+
 
       // return 'token' cookie as a reponse header with jwt as its value. Expires in one year.
       context.res.cookie('token', token, {
@@ -173,7 +174,7 @@ module.exports.resolvers = {
         throw new Error('email: Hmm, we couldn\'t find that email in our records. Try again.');
       }
 
-      // check if ther password is correct
+      // check if their password is correct
       const valid = await bcrypt.compare(password, user.password);
 
       if (!valid) {
