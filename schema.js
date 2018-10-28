@@ -5,6 +5,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { randomBytes } = require('crypto');
 const { promisify } = require('util');
+const { transport, makeNiceEmail } = require('./mail');
 const User = mongoose.model('User');
 
 // defining "shape" of data
@@ -54,10 +55,10 @@ module.exports.typeDefs = gql`
 
   type User {
     id: ID!
+    fullName: String!
+    username: String!
     email: String!
     password: String!
-    username: String!
-    fullName: String!
     resetToken: String
     resetTokenExpiry: String
     cart: [CartItem!]!
@@ -142,11 +143,10 @@ module.exports.resolvers = {
       const hashedPassword = await bcrypt.hash(password, 10);
 
       // save new user to the db with default USER permission
-      const user = await User({ email, fullName, username, password: hashedPassword, permissions: 'USER' }).save();
+      const user = await User({ email, fullName, username, password: hashedPassword, permissions: 'USER', resetToken: null, resetTokenExpiry: null }).save();
 
       // generate signed json web token with user.id as payload and APP_SECRET as private key
       const token = jwt.sign({ userId: user.id }, process.env.APP_SECRET);
-
 
       // return 'token' cookie as a reponse header with jwt as its value. Expires in one year.
       context.res.cookie('token', token, {
@@ -209,7 +209,7 @@ module.exports.resolvers = {
 
     requestReset: async (_, args, context) => {
       // check if this is a real user
-      const user = await User.find({ email: args.email });
+      const user = await User.findOne({ email: args.email });
 
       if (!user) {
         throw new Error(`No such user found with email ${args.email}`);
@@ -220,23 +220,26 @@ module.exports.resolvers = {
       const resetToken = (await randomBytesPromisified(20)).toString('hex');
       const resetTokenExpiry = Date.now() + 36000000; // 1 hour from now
 
-      // TODO: Finish this
-      // We dont have resetToken, resetTokenExpiry fields in db
-      // Does error but doesnt seem to update
-      const res = User.updateOne({
-        filter: { email: args.email  },
-        update: {
+      await User.updateOne(
+        { "email": args.email },
+        {
           $set: {
+            username: "ezeikelp",
             resetToken,
             resetTokenExpiry
           }
         }
-      });
+      );
 
-      console.log(res);
-
-      // TODO:
       // email the user the reset token
+      await transport.sendMail({
+        from: 'ezeikel@fiveyards.app',
+        to: user.email,
+        subject: 'Your password token',
+        html: makeNiceEmail(`Your password reset token is here!
+          \n\n
+          <a href="${process.env.FRONTEND_URL}/reset?resetToken=${resetToken}">Click here to reset</a>`)
+      });
 
       // return the message
       return { message: 'Thanks!' };

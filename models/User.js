@@ -8,14 +8,6 @@ const passportLocalMongoose = require('passport-local-mongoose');
 
 // document structure
 const userSchema = new Schema({
-  email: {
-    type: String,
-    unique: true,
-    lowercase: true,
-    trim: true,
-    validate: [validator.isEmail, 'Invalid Email Address'],
-    required: 'Please supply an email address'
-  },
   fullName: {
     type: String,
     required: 'Please supply a name',
@@ -28,11 +20,21 @@ const userSchema = new Schema({
     trim: true,
     lowercase: true
   },
+  email: {
+    type: String,
+    unique: true,
+    lowercase: true,
+    trim: true,
+    validate: [validator.isEmail, 'Invalid Email Address'],
+    required: 'Please supply an email address'
+  },
   password: {
     type: String,
     minlength: 6
   },
-  permissions: [String],
+  resetToken: String,
+  resetTokenExpiry: String,
+  cart: [String],
   createdAt: {
     type: Date,
     default: Date.now
@@ -40,7 +42,8 @@ const userSchema = new Schema({
   updatedAt: {
     type: Date,
     default: Date.now
-  }
+  },
+  permissions: [String],
   // TODO: add favourites here
   // hearts: [
   //   { type: mongoose.Schema.ObjectId, ref: 'Shop' }
