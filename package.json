@@ -5,7 +5,8 @@
   "scripts": {
     "start": "node ./start.js",
     "watch": "nodemon ./start.js",
-    "dev": "npm run watch"
+    "dev": "yarn bake-env && yarn watch",
+    "bake-env": "node ./scripts/process.env-generator.js"
   },
   "author": "Ezeikel Pemberton",
   "license": "ISC",
