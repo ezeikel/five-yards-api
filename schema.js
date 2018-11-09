@@ -212,7 +212,7 @@ module.exports.resolvers = {
       const user = await User.findOne({ email: args.email });
 
       if (!user) {
-        throw new Error(`No such user found with email ${args.email}`);
+        throw new Error('email: Hmm, we couldn\'t find that email in our records. Try again.');
       }
 
       // set a reset token and expiry for that user
