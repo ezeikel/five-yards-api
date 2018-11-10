@@ -61,7 +61,7 @@ module.exports.typeDefs = gql`
     password: String!
     resetToken: String
     resetTokenExpiry: String
-    cart: [CartItem!]!
+    cart: [CartItem]!
     createdAt: Date!
     updatedAt: Date!
     permissions: [Permission]!
@@ -155,13 +155,14 @@ module.exports.resolvers = {
       });
 
       // return relevant user properties
-      const { id, permissions } = user;
+      const { id, permissions, cart } = user;
 
       return {
         id,
         email,
         fullName,
         username,
+        cart,
         permissions
       }
     },
@@ -191,13 +192,14 @@ module.exports.resolvers = {
       });
 
       // return relevant user properties
-      const { id, fullName, username, permissions } = user;
+      const { id, fullName, username, cart, permissions } = user;
 
       return {
         id,
         email,
         fullName,
         username,
+        cart,
         permissions
       }
     },
@@ -283,6 +285,8 @@ module.exports.resolvers = {
         maxAge: 1000 * 60 * 60 * 24 * 365
       });
       // 8. return the new user
+
+      // TODO: Are we returning EVERYTHING ON USER HERE?! Select fields
       return updatedUser;
     }
   }
