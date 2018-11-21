@@ -7,6 +7,7 @@ const { randomBytes } = require('crypto');
 const { promisify } = require('util');
 const { transport, makeNiceEmail } = require('./mail');
 const User = mongoose.model('User');
+const Item = mongoose.model('Item');
 
 // defining "shape" of data
 module.exports.typeDefs = gql`
@@ -91,6 +92,7 @@ module.exports.typeDefs = gql`
   }
 
   type Mutation {
+    createItem(title: String, description: String, price: Int, image: String, largeImage: String): Item!
     signup(email: String!, fullName: String!, username: String!, password: String!): User!
     signin(email: String!, password: String!): User!
     signout: SuccessMessage
@@ -131,6 +133,16 @@ module.exports.resolvers = {
     users: () => User.find()
   },
   Mutation: {
+    createItem: async (_, { title, description, image, largeImage, price }, ctx) => {
+      console.log('createItem()');
+      if (!ctx.req.userId) {
+        throw new Error('You must be logged in to do that!');
+      }
+
+      const item = await Item({ title, description, image, largeImage, price, user: ctx.req.userId }).save();
+
+      return item;
+    },
     signup: async (_, { email, fullName, username, password }, context) => {
       email = email.toLowerCase();
 
