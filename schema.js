@@ -27,6 +27,8 @@ module.exports.typeDefs = gql`
   type Query {
     me: User
     users: [User]!
+    item(id: ID!): Item
+    items: [Item]!
   }
 
   type SuccessMessage {
@@ -130,11 +132,12 @@ module.exports.resolvers = {
 
       return user;
     },
-    users: () => User.find()
+    users: () => User.find(),
+    item: (_, { id }, context) => Item.findOne({ _id: id }),
+    items: () => Item.find()
   },
   Mutation: {
     createItem: async (_, { title, description, image, largeImage, price }, ctx) => {
-      console.log('createItem()');
       if (!ctx.req.userId) {
         throw new Error('You must be logged in to do that!');
       }
