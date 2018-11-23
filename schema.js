@@ -94,12 +94,28 @@ module.exports.typeDefs = gql`
   }
 
   type Mutation {
-    createItem(title: String, description: String, price: Int, image: String, largeImage: String): Item!
-    signup(email: String!, fullName: String!, username: String!, password: String!): User!
+    createItem(
+      title: String
+      description: String
+      price: Int
+      image: String
+      largeImage: String
+    ): Item!
+    signup(
+      email: String!
+      fullName: String!
+      username: String!
+      password: String!
+    ): User!
     signin(email: String!, password: String!): User!
     signout: SuccessMessage
     requestReset(email: String!): SuccessMessage
-    resetPassword(resetToken: String!, password: String!, confirmPassword: String!): User!
+    resetPassword(
+      resetToken: String!
+      password: String!
+      confirmPassword: String!
+    ): User!
+    deleteItem(id: ID!): Item
   }
 `;
 
@@ -303,6 +319,23 @@ module.exports.resolvers = {
 
       // TODO: Are we returning EVERYTHING ON USER HERE?! Select fields
       return updatedUser;
+    },
+
+    deleteItem: async (_, { id }, ctx, info) => {
+      // 1. find the item
+      const item = await Item.findOne({ _id: id });
+      // 2. check if they own that item, or have the permissions
+      const ownsItem = item.user.id === ctx.req.userId;
+      const hasPermissions = ctx.req.user.permissions.some(permission => ['ADMIN', 'ITEMDELETE'].includes(permission));
+
+      if (!ownsItem && !hasPermissions) {
+        throw new Error('You dont have permissions to do that!');
+      }
+
+      // 3. Delete it!
+      await Item.deleteOne({_id: id });
+
+      return { id };
     }
   }
 };

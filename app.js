@@ -53,7 +53,7 @@ app.use(async (req, res, next) => {
   if (!req.userId) return next();
 
   // bring back specific fields from User
-  const user = await User.find({ id: req.id }, { permissions: 1, email: 1, fullName: 1 });
+  const user = await User.findOne({ id: req.id }, { permissions: 1, email: 1, fullName: 1 });
   req.user = user;
   next();
 });
