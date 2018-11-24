@@ -116,6 +116,7 @@ module.exports.typeDefs = gql`
       confirmPassword: String!
     ): User!
     deleteItem(id: ID!): Item
+    updateItem(id: ID!, title: String, description: String, price: Int): Item!
   }
 `;
 
@@ -336,6 +337,24 @@ module.exports.resolvers = {
       await Item.deleteOne({_id: id });
 
       return { id };
+    },
+
+    updateItem: (_, args, ctx) => {
+      // first take a copy of the updates
+      const updates = { ...args };
+
+      // remove the ID form the updates
+      delete updates.id;
+      // run the update method
+
+      return Item.findOneAndUpdate(
+        { "_id": args.id },
+        {
+          $set: {
+            ...updates
+          }
+        }
+      );
     }
   }
 };
