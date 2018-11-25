@@ -14,6 +14,7 @@ mongoose.connection.on('error', (err) => {
 // Load mongodb collections on start up
 require('./models/User');
 require('./models/Item');
+require('./models/CartItem');
 //require('./models/Shop');
 //require('./models/Review');
 

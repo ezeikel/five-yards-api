@@ -8,6 +8,7 @@ const { promisify } = require('util');
 const { transport, makeNiceEmail } = require('./mail');
 const User = mongoose.model('User');
 const Item = mongoose.model('Item');
+const CartItem = mongoose.model('CartItem');
 
 // defining "shape" of data
 module.exports.typeDefs = gql`
@@ -117,6 +118,7 @@ module.exports.typeDefs = gql`
     ): User!
     deleteItem(id: ID!): Item
     updateItem(id: ID!, title: String, description: String, price: Int): Item!
+    addToCart(id: ID!): CartItem
   }
 `;
 
@@ -355,6 +357,32 @@ module.exports.resolvers = {
           }
         }
       );
+    },
+    addToCart: async (_, { id }, ctx) => {
+      // 1. make sure they are signed in
+      const { userId } = ctx.req;
+
+      if (!userId) {
+        throw new Error('You must be signed in!');
+      }
+      // 2. query the users current cart
+      const existingCartItem = await CartItem.findOne({
+        user: userId,
+        item: id
+      });
+
+      // 3. check if that item is already in their cart and if it is increment by 1
+      if (existingCartItem) {
+        return CartItem.findOneAndUpdate({
+          _id: existingCartItem.id,
+        }, {
+          $set: {
+            quantity: existingCartItem.quantity + 1
+          }
+        });
+      }
+      // 4. if its not, create a fresh CartItem for that user
+      return CartItem({ user: userId, item: id }).save();
     }
   }
 };

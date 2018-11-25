@@ -34,7 +34,10 @@ const userSchema = new Schema({
   },
   resetToken: String,
   resetTokenExpiry: String,
-  cart: [String],
+  cart: [{
+    type: mongoose.Schema.ObjectId,
+    ref: 'CartItem'
+  }],
   createdAt: {
     type: Date,
     default: Date.now
@@ -70,6 +73,14 @@ userSchema.virtual('lastName').get(function() {
 // plugins
 userSchema.plugin(passportLocalMongoose, { usernameField: 'email' });
 userSchema.plugin(mongodbErrorHandler);
+
+function autopopulate(next) {
+  this.populate('cart');
+  next();
+}
+
+userSchema.pre('find', autopopulate);
+userSchema.pre('findOne', autopopulate);
 
 // compile model and export
 module.exports = mongoose.model('User', userSchema);
