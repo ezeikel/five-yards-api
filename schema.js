@@ -359,6 +359,7 @@ module.exports.resolvers = {
       );
     },
     addToCart: async (_, { id }, ctx) => {
+      console.log('addToCart()');
       // 1. make sure they are signed in
       const { userId } = ctx.req;
 
@@ -373,6 +374,7 @@ module.exports.resolvers = {
 
       // 3. check if that item is already in their cart and if it is increment by 1
       if (existingCartItem) {
+        console.log({ existingCartItem });
         return CartItem.findOneAndUpdate({
           _id: existingCartItem.id,
         }, {
@@ -382,7 +384,22 @@ module.exports.resolvers = {
         });
       }
       // 4. if its not, create a fresh CartItem for that user
-      return CartItem({ user: userId, item: id }).save();
+      const cartItem = await CartItem({ user: userId, item: id }).save();
+
+      console.log({ cartItem });
+
+      // EXTRA: push cartItem id to User cart array
+      const updatedUser = await User.findOneAndUpdate({
+        "_id": userId
+      }, {
+        $push: {
+          cart: cartItem.id
+        }
+      });
+
+        console.log({ updatedUser });
+
+        return cartItem
     }
   }
 };
