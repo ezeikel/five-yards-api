@@ -32,7 +32,7 @@ const itemSchema = new Schema({
 });
 
 function autopopulate(next) {
-  this.populate('user');
+  // this.populate('user');
   next();
 }
 

@@ -58,6 +58,11 @@ app.use(async (req, res, next) => {
   next();
 });
 
+// ISSUE: https://github.com/apollographql/apollo-server/issues/1633
+const { ObjectId } = mongoose.Types;
+ObjectId.prototype.valueOf = function () {
+  return this.toString();
+};
 
 const server = new ApolloServer({
   typeDefs,

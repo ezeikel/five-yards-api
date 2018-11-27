@@ -10,13 +10,11 @@ const cartItemSchema = new Schema({
   },
   item: {
     type: mongoose.Schema.ObjectId,
-    ref: 'Item',
-    require: 'You must supply a item'
+    ref: 'Item'
   },
   user: {
     type: mongoose.Schema.ObjectId,
-    ref: 'User',
-    require: 'You must supply a user'
+    ref: 'User'
   },
   createdAt: {
     type: Date,
@@ -30,7 +28,7 @@ const cartItemSchema = new Schema({
 
 function autopopulate(next) {
   this.populate('item');
-  this.populate('user');
+  // this.populate('user');
   next();
 }
 

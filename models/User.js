@@ -47,10 +47,6 @@ const userSchema = new Schema({
     default: Date.now
   },
   permissions: [String],
-  // TODO: add favourites here
-  // hearts: [
-  //   { type: mongoose.Schema.ObjectId, ref: 'Shop' }
-  // ]
 });
 
 // grab gravatar image based on email addresss

@@ -65,7 +65,7 @@ module.exports.typeDefs = gql`
     password: String!
     resetToken: String
     resetTokenExpiry: String
-    cart: [CartItem]!
+    cart: [CartItem!]
     createdAt: Date!
     updatedAt: Date!
     permissions: [Permission]!
@@ -375,13 +375,17 @@ module.exports.resolvers = {
       // 3. check if that item is already in their cart and if it is increment by 1
       if (existingCartItem) {
         console.log({ existingCartItem });
-        return CartItem.findOneAndUpdate({
+        const updated = await CartItem.findOneAndUpdate({
           _id: existingCartItem.id,
         }, {
           $set: {
             quantity: existingCartItem.quantity + 1
           }
         });
+
+        console.log({ updated });
+
+        return updated;
       }
       // 4. if its not, create a fresh CartItem for that user
       const cartItem = await CartItem({ user: userId, item: id }).save();
@@ -397,9 +401,9 @@ module.exports.resolvers = {
         }
       });
 
-        console.log({ updatedUser });
+      console.log({ updatedUser });
 
-        return cartItem
+      return cartItem
     }
   }
 };
