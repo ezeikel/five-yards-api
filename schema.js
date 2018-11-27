@@ -118,7 +118,7 @@ module.exports.typeDefs = gql`
     ): User!
     deleteItem(id: ID!): Item
     updateItem(id: ID!, title: String, description: String, price: Int): Item!
-    addToCart(id: ID!): User
+    addToCart(id: ID!): User!
   }
 `;
 
@@ -156,12 +156,12 @@ module.exports.resolvers = {
     items: () => Item.find()
   },
   Mutation: {
-    createItem: async (_, { title, description, image, largeImage, price }, ctx) => {
-      if (!ctx.req.userId) {
+    createItem: async (_, { title, description, image, largeImage, price }, context) => {
+      if (!context.req.userId) {
         throw new Error('You must be logged in to do that!');
       }
 
-      const item = await Item({ title, description, image, largeImage, price, user: ctx.req.userId }).save();
+      const item = await Item({ title, description, image, largeImage, price, user: context.req.userId }).save();
 
       return item;
     },
@@ -280,7 +280,7 @@ module.exports.resolvers = {
       return { message: 'Thanks!' };
     },
 
-    resetPassword: async(_, args, ctx) => {
+    resetPassword: async(_, args, context) => {
       // 1. check if the passwords match
       if (args.password !== args.confirmPassword) {
         throw new Error('Passwords don\'t match');
@@ -314,7 +314,7 @@ module.exports.resolvers = {
       // 6. generate jwt
       const token = jwt.sign({ userId: updatedUser.id }, process.env.APP_SECRET);
       // 7. set the jwt cookie
-      ctx.res.cookie('token', token, {
+      context.res.cookie('token', token, {
         httpOnly: true,
         maxAge: 1000 * 60 * 60 * 24 * 365
       });
@@ -324,12 +324,12 @@ module.exports.resolvers = {
       return updatedUser;
     },
 
-    deleteItem: async (_, { id }, ctx, info) => {
+    deleteItem: async (_, { id }, context, info) => {
       // 1. find the item
       const item = await Item.findOne({ _id: id });
       // 2. check if they own that item, or have the permissions
-      const ownsItem = item.user.id === ctx.req.userId;
-      const hasPermissions = ctx.req.user.permissions.some(permission => ['ADMIN', 'ITEMDELETE'].includes(permission));
+      const ownsItem = item.user.id === context.req.userId;
+      const hasPermissions = context.req.user.permissions.some(permission => ['ADMIN', 'ITEMDELETE'].includes(permission));
 
       if (!ownsItem && !hasPermissions) {
         throw new Error('You dont have permissions to do that!');
@@ -341,7 +341,7 @@ module.exports.resolvers = {
       return { id };
     },
 
-    updateItem: (_, args, ctx) => {
+    updateItem: (_, args, context) => {
       // first take a copy of the updates
       const updates = { ...args };
 
@@ -358,9 +358,9 @@ module.exports.resolvers = {
         }
       );
     },
-    addToCart: async (_, { id }, ctx) => {
+    addToCart: async (_, { id }, context) => {
       // 1. make sure they are signed in
-      const { userId } = ctx.req;
+      const { userId } = context.req;
 
       if (!userId) {
         throw new Error('You must be signed in!');
@@ -373,7 +373,7 @@ module.exports.resolvers = {
 
       // 3. check if that item is already in their cart and if it is increment by 1
       if (existingCartItem) {
-        const updated = await CartItem.findOneAndUpdate({
+        await CartItem.findOneAndUpdate({
           _id: existingCartItem.id,
         }, {
           $set: {
