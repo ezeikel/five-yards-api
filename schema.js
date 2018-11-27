@@ -118,7 +118,7 @@ module.exports.typeDefs = gql`
     ): User!
     deleteItem(id: ID!): Item
     updateItem(id: ID!, title: String, description: String, price: Int): Item!
-    addToCart(id: ID!): CartItem
+    addToCart(id: ID!): User
   }
 `;
 
@@ -359,7 +359,6 @@ module.exports.resolvers = {
       );
     },
     addToCart: async (_, { id }, ctx) => {
-      console.log('addToCart()');
       // 1. make sure they are signed in
       const { userId } = ctx.req;
 
@@ -374,7 +373,6 @@ module.exports.resolvers = {
 
       // 3. check if that item is already in their cart and if it is increment by 1
       if (existingCartItem) {
-        console.log({ existingCartItem });
         const updated = await CartItem.findOneAndUpdate({
           _id: existingCartItem.id,
         }, {
@@ -383,27 +381,23 @@ module.exports.resolvers = {
           }
         });
 
-        console.log({ updated });
+        const user = await User.findOne({
+          _id: userId
+        });
 
-        return updated;
+        return user;
       }
       // 4. if its not, create a fresh CartItem for that user
       const cartItem = await CartItem({ user: userId, item: id }).save();
 
-      console.log({ cartItem });
-
-      // EXTRA: push cartItem id to User cart array
-      const updatedUser = await User.findOneAndUpdate({
+      // 5. push cartItem id to User cart array
+      return User.findOneAndUpdate({
         "_id": userId
       }, {
         $push: {
           cart: cartItem.id
         }
       });
-
-      console.log({ updatedUser });
-
-      return cartItem
     }
   }
 };
