@@ -119,6 +119,7 @@ module.exports.typeDefs = gql`
     deleteItem(id: ID!): Item
     updateItem(id: ID!, title: String, description: String, price: Int): Item!
     addToCart(id: ID!): User!
+    removeFromCart(id: ID!): User!
   }
 `;
 
@@ -398,6 +399,27 @@ module.exports.resolvers = {
           cart: cartItem.id
         }
       });
+    },
+    removeFromCart: async (_, { id }, context) => {
+      const { userId } = context.req;
+      // 1. find the cart item
+      const cartItem = await CartItem.findOne({
+        _id: id
+      });
+
+      // 1.5 make sure we found an item
+      if (!cartItem) throw new Error('No CartItem Found!');
+      // 2. make sure they own that cart item
+      // TODO: Had to remove strict !== because req.userId is a string. Fix
+      if (cartItem.user._id != context.req.userId) {
+        throw new Error('Cheating huh?!');
+      }
+      // 3. delete that cart item
+      await CartItem.remove({
+        _id: id
+      });
+
+      return User.findOne({ _id: userId });
     }
   }
 };
