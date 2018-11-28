@@ -28,7 +28,6 @@ const cartItemSchema = new Schema({
 
 function autopopulate(next) {
   this.populate('item');
-  // this.populate('user');
   next();
 }
 

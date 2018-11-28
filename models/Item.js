@@ -31,13 +31,5 @@ const itemSchema = new Schema({
   }
 });
 
-function autopopulate(next) {
-  // this.populate('user');
-  next();
-}
-
-itemSchema.pre('find', autopopulate);
-itemSchema.pre('findOne', autopopulate);
-
 // compile model and export
 module.exports = mongoose.model('Item', itemSchema);
