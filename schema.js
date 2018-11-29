@@ -363,6 +363,9 @@ module.exports.resolvers = {
       // 1. make sure they are signed in
       const { userId } = context.req;
 
+      console.log({ id });
+      console.log({ userId });
+
       if (!userId) {
         throw new Error('You must be signed in!');
       }
@@ -391,14 +394,19 @@ module.exports.resolvers = {
       // 4. if its not, create a fresh CartItem for that user
       const cartItem = await CartItem({ user: userId, item: id }).save();
 
+      console.log({ cartItem });
+
       // 5. push cartItem id to User cart array
-      return User.findOneAndUpdate({
+      const user = await User.findOneAndUpdate({
         "_id": userId
       }, {
         $push: {
-          cart: cartItem.id
+          cart: cartItem._id
         }
       });
+
+      console.log({ user });
+      return user;
     },
     removeFromCart: async (_, { id }, context) => {
       const { userId } = context.req;
@@ -411,7 +419,7 @@ module.exports.resolvers = {
       if (!cartItem) throw new Error('No CartItem Found!');
       // 2. make sure they own that cart item
       // TODO: Had to remove strict !== because req.userId is a string. Fix
-      if (cartItem.user._id != context.req.userId) {
+      if (cartItem.user._id != userId) {
         throw new Error('Cheating huh?!');
       }
       // 3. delete that cart item
@@ -419,7 +427,12 @@ module.exports.resolvers = {
         _id: id
       });
 
-      return User.findOne({ _id: userId });
+      // remove from user.cart array
+      return User.findOneAndUpdate({
+        _id: userId
+      }, {
+        $pull: { cart: id }
+      });
     }
   }
 };
