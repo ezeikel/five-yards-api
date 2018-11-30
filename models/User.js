@@ -77,6 +77,7 @@ function autopopulate(next) {
 
 userSchema.pre('find', autopopulate);
 userSchema.pre('findOne', autopopulate);
+userSchema.pre('findOneAndUpdate', autopopulate);
 
 // compile model and export
 module.exports = mongoose.model('User', userSchema);
