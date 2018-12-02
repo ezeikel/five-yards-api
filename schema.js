@@ -119,7 +119,7 @@ module.exports.typeDefs = gql`
     deleteItem(id: ID!): Item
     updateItem(id: ID!, title: String, description: String, price: Int): Item!
     addToCart(id: ID!): User!
-    removeFromCart(id: ID!): User!
+    removeFromCart(id: ID!): CartItem
   }
 `;
 
@@ -363,9 +363,6 @@ module.exports.resolvers = {
       // 1. make sure they are signed in
       const { userId } = context.req;
 
-      console.log({ id });
-      console.log({ userId });
-
       if (!userId) {
         throw new Error('You must be signed in!');
       }
@@ -385,28 +382,23 @@ module.exports.resolvers = {
           }
         });
 
-        const user = await User.findOne({
+        return User.findOne({
           _id: userId
         });
-
-        return user;
       }
       // 4. if its not, create a fresh CartItem for that user
       const cartItem = await CartItem({ user: userId, item: id }).save();
 
-      console.log({ cartItem });
-
       // 5. push cartItem id to User cart array
-      const user = await User.findOneAndUpdate({
+      return User.findOneAndUpdate({
         "_id": userId
       }, {
         $push: {
           cart: cartItem._id
-        }
+        },
+      }, {
+        new: true
       });
-
-      console.log({ user });
-      return user;
     },
     removeFromCart: async (_, { id }, context) => {
       const { userId } = context.req;
@@ -427,12 +419,7 @@ module.exports.resolvers = {
         _id: id
       });
 
-      // remove from user.cart array
-      return User.findOneAndUpdate({
-        _id: userId
-      }, {
-        $pull: { cart: id }
-      });
+      return cartItem;
     }
   }
 };
