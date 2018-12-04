@@ -483,6 +483,8 @@ module.exports.resolvers = {
         user: userId
       }).save();
 
+      console.log({ order });
+
       // const order = await ctx.db.mutation.createOrder({
       //   data: {
       //     total: charge.amount,
@@ -495,6 +497,8 @@ module.exports.resolvers = {
 
       // 6. clean up - clear the users cart, delete cartItems
       const cartItemIds = user.cart.map(cartItem => cartItem.id);
+
+      console.log({ cartItemIds });
 
       await CartItem.deleteMany(
         {
