@@ -9,6 +9,9 @@ const { transport, makeNiceEmail } = require('./mail');
 const User = mongoose.model('User');
 const Item = mongoose.model('Item');
 const CartItem = mongoose.model('CartItem');
+const Order = mongoose.model('Order');
+const OrderItem = mongoose.model('OrderItem');
+const stripe = require("./stripe");
 
 // defining "shape" of data
 module.exports.typeDefs = gql`
@@ -461,17 +464,27 @@ module.exports.resolvers = {
       console.log({ charge });
 
       // 4. convert the CartItems to OrderItems
-      const orderItems = user.cart.map(cartItem => {
+      console.log({ 'user-cart': user.cart });
+      const orderItems = user.toObject().cart.map(cartItem => { // https://github.com/Automattic/mongoose/issues/516
+        console.log({cartItem});
+        console.log({ 'item': cartItem.item});
         const orderItem = {
           ...cartItem.item,
           quantity: cartItem.quantity,
           user: cartItem.user
         };
         delete orderItem._id;
+        console.log({ orderItem });
         return orderItem;
       });
 
       console.log({ orderItems });
+
+      const documents = await OrderItem.insertMany(orderItems);
+      console.log({ documents });
+
+      const orderItemIds = documents.map(orderItem => orderItem._id);
+      console.log({ orderItemIds });
 
       // 5. create the order
       const order = await Order({
@@ -480,6 +493,7 @@ module.exports.resolvers = {
         //TODO: This was a shortcut to making crearing OrderItems then adding them to Order.
         // Mongo equivalent? OrderItem({}).save();
         items: { create: orderItems },
+        // TODO: items: orderItemIds Might need to $push
         user: userId
       }).save();
 

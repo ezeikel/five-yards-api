@@ -15,6 +15,8 @@ mongoose.connection.on('error', (err) => {
 require('./models/User');
 require('./models/Item');
 require('./models/CartItem');
+require('./models/Order');
+require('./models/OrderItem');
 //require('./models/Shop');
 //require('./models/Review');
 
