@@ -435,25 +435,8 @@ module.exports.resolvers = {
         _id: userId
       });
 
-      // const user = await ctx.db.query.user(
-      //   { where: { id: userId } },
-      //   `
-      //   {
-      //     id
-      //     name
-      //     email
-      //     cart {
-      //       id
-      //       quantity
-      //       item { title price id description image largeImage }
-      //     }
-      //   }
-      // `
-      // );
-
       // 2. recalculate the total for the price
       const amount = user.cart.reduce((tally, cartItem) => tally + cartItem.item.price * cartItem.quantity, 0);
-      console.log(`Going to charge for a total of ${amount}`);
       // 3. create the stripe charge (turn token into $$$)
       const charge = await stripe.charges.create({
         amount,
@@ -461,70 +444,43 @@ module.exports.resolvers = {
         source: token
       });
 
-      console.log({ charge });
-
       // 4. convert the CartItems to OrderItems
-      console.log({ 'user-cart': user.cart });
-      const orderItems = user.toObject().cart.map(cartItem => { // https://github.com/Automattic/mongoose/issues/516
-        console.log({cartItem});
-        console.log({ 'item': cartItem.item});
+      // toObject() removes pulls out data in mongoose _doc property - https://github.com/Automattic/mongoose/issues/516
+      const orderItems = user.toObject().cart.map(cartItem => {
         const orderItem = {
           ...cartItem.item,
           quantity: cartItem.quantity,
           user: cartItem.user
         };
         delete orderItem._id;
-        console.log({ orderItem });
         return orderItem;
       });
 
-      console.log({ orderItems });
-
       const documents = await OrderItem.insertMany(orderItems);
-      console.log({ documents });
 
       const orderItemIds = documents.map(orderItem => orderItem._id);
-      console.log({ orderItemIds });
 
       // 5. create the order
-      const order = await Order({
+      const { _id } = await Order({
         total: charge.amount,
         charge: charge.id,
-        //TODO: This was a shortcut to making crearing OrderItems then adding them to Order.
-        // Mongo equivalent? OrderItem({}).save();
-        items: { create: orderItems },
-        // TODO: items: orderItemIds Might need to $push
+        items: [...orderItemIds],
         user: userId
       }).save();
 
-      console.log({ order });
-
-      // const order = await ctx.db.mutation.createOrder({
-      //   data: {
-      //     total: charge.amount,
-      //     charge: charge.id,
-      //     items: { create: orderItems },
-      //     user: { connect: { id: userId } }
-
-      //   }
-      // });
+      // TODO: Might be an easier way to create a Document and get its populated fields returned too
+      const order = await Order.findOne({
+        _id
+      });
 
       // 6. clean up - clear the users cart, delete cartItems
       const cartItemIds = user.cart.map(cartItem => cartItem.id);
-
-      console.log({ cartItemIds });
 
       await CartItem.deleteMany(
         {
           _id: { $in: cartItemIds }
         }
       );
-
-      // await ctx.db.mutation.deleteManyCartItems({
-      //   where: {
-      //     id_in: cartItemIds
-      //   }
-      // });
 
       // 7. return the order to the client
       return order;
