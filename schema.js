@@ -34,6 +34,7 @@ module.exports.typeDefs = gql`
     item(id: ID!): Item
     items: [Item]!
     order(id: ID!): Order
+    orders: [Order]!
   }
 
   type SuccessMessage {
@@ -177,6 +178,17 @@ module.exports.resolvers = {
       }
       // 4. return the order
       return order;
+    },
+    orders: (_, args, context) => {
+      const { userId } = context.req;
+
+      if (!userId) {
+        throw new Error('You must be signed in!');
+      }
+
+      return Order.find({
+        user: userId
+      });
     }
   },
   Mutation: {
