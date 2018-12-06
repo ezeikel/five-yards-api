@@ -33,6 +33,7 @@ module.exports.typeDefs = gql`
     users: [User]!
     item(id: ID!): Item
     items: [Item]!
+    order(id: ID!): Order
   }
 
   type SuccessMessage {
@@ -130,8 +131,8 @@ module.exports.typeDefs = gql`
 // this is how "get" the data we need
 module.exports.resolvers = {
   Date: new GraphQLScalarType({
-    name: 'Date',
-    description: 'Date custom scalar type',
+    name: "Date",
+    description: "Date custom scalar type",
     parseValue(value) {
       return new Date(value); // value from the client
     },
@@ -140,10 +141,10 @@ module.exports.resolvers = {
     },
     parseLiteral(ast) {
       if (ast.kind === kind.INT) {
-        return new Date(ast.value) // ast value is always in string format
+        return new Date(ast.value); // ast value is always in string format
       }
       return null;
-    },
+    }
   }),
   Query: {
     me: async (_, args, context) => {
@@ -158,15 +159,40 @@ module.exports.resolvers = {
     },
     users: () => User.find(),
     item: (_, { id }, context) => Item.findOne({ _id: id }),
-    items: () => Item.find()
+    items: () => Item.find(),
+    order: async (_, { id }, context) => {
+      // 1. make sure they are logged in
+      if (!context.req.userId) {
+        throw new Error("You are not logged in!");
+      }
+      // 2. query the current order
+      const order = await Order.findOne({ _id: id });
+
+      // 3. check if they have the permission to see this order
+      const ownsOrder = order.user._id.toString() === context.req.userId;
+
+      const hasPermission = context.req.user.permissions.includes("ADMIN");
+      if (!ownsOrder && !hasPermission) {
+        throw new Error("You cant see this bud!");
+      }
+      // 4. return the order
+      return order;
+    }
   },
   Mutation: {
     createItem: async (_, { title, description, image, largeImage, price }, context) => {
       if (!context.req.userId) {
-        throw new Error('You must be logged in to do that!');
+        throw new Error("You must be logged in to do that!");
       }
 
-      const item = await Item({ title, description, image, largeImage, price, user: context.req.userId }).save();
+      const item = await Item({
+        title,
+        description,
+        image,
+        largeImage,
+        price,
+        user: context.req.userId
+      }).save();
 
       return item;
     },
@@ -175,20 +201,30 @@ module.exports.resolvers = {
 
       const exists = await User.findOne({ email });
       if (exists) {
-        throw new Error('email: Hmm, a user with that email already exists. Use another one or sign in.');
+        throw new Error(
+          "email: Hmm, a user with that email already exists. Use another one or sign in."
+        );
       }
 
       // hash plaintext password with given number of saltRounds before storing in db
       const hashedPassword = await bcrypt.hash(password, 10);
 
       // save new user to the db with default USER permission
-      const user = await User({ email, fullName, username, password: hashedPassword, permissions: 'USER', resetToken: null, resetTokenExpiry: null }).save();
+      const user = await User({
+        email,
+        fullName,
+        username,
+        password: hashedPassword,
+        permissions: "USER",
+        resetToken: null,
+        resetTokenExpiry: null
+      }).save();
 
       // generate signed json web token with user.id as payload and APP_SECRET as private key
       const token = jwt.sign({ userId: user.id }, process.env.APP_SECRET);
 
       // return 'token' cookie as a reponse header with jwt as its value. Expires in one year.
-      context.res.cookie('token', token, {
+      context.res.cookie("token", token, {
         maxAge: 1000 * 60 * 60 * 24 * 365,
         httpOnly: true
       });
@@ -203,31 +239,35 @@ module.exports.resolvers = {
         username,
         cart,
         permissions
-      }
+      };
     },
 
-    signin: async(_, { email, password }, context) => {
+    signin: async (_, { email, password }, context) => {
       // check if there is a user with this email
       const user = await User.findOne({ email: email });
 
       if (!user) {
-        throw new Error('email: Hmm, we couldn\'t find that email in our records. Try again.');
+        throw new Error(
+          "email: Hmm, we couldn't find that email in our records. Try again."
+        );
       }
 
       // check if their password is correct
       const valid = await bcrypt.compare(password, user.password);
 
       if (!valid) {
-        throw new Error('password: Hmm, that password doesn\'t match the one we have on record. Try again.');
+        throw new Error(
+          "password: Hmm, that password doesn't match the one we have on record. Try again."
+        );
       }
 
       // generate jwt token
       const token = jwt.sign({ userId: user.id }, process.env.APP_SECRET);
 
       // set the cookie with the token
-      context.res.cookie('token', token, {
+      context.res.cookie("token", token, {
         httpOnly: true,
-        maxAge: 1000 * 60 * 60 * 24 * 365,
+        maxAge: 1000 * 60 * 60 * 24 * 365
       });
 
       // return relevant user properties
@@ -240,12 +280,12 @@ module.exports.resolvers = {
         username,
         cart,
         permissions
-      }
+      };
     },
 
     signout: (_, args, context) => {
-      context.res.clearCookie('token');
-      return { message: 'Goodbye!' };
+      context.res.clearCookie("token");
+      return { message: "Goodbye!" };
     },
 
     requestReset: async (_, args, context) => {
@@ -253,16 +293,18 @@ module.exports.resolvers = {
       const user = await User.findOne({ email: args.email });
 
       if (!user) {
-        throw new Error('email: Hmm, we couldn\'t find that email in our records. Try again.');
+        throw new Error(
+          "email: Hmm, we couldn't find that email in our records. Try again."
+        );
       }
 
       // set a reset token and expiry for that user
       const randomBytesPromisified = promisify(randomBytes);
-      const resetToken = (await randomBytesPromisified(20)).toString('hex');
+      const resetToken = (await randomBytesPromisified(20)).toString("hex");
       const resetTokenExpiry = Date.now() + 36000000; // 1 hour from now
 
       await User.updateOne(
-        { "email": args.email },
+        { email: args.email },
         {
           $set: {
             resetToken,
@@ -273,53 +315,59 @@ module.exports.resolvers = {
 
       // email the user the reset token
       await transport.sendMail({
-        from: 'ezeikel@fiveyards.app',
+        from: "ezeikel@fiveyards.app",
         to: user.email,
-        subject: 'Your password token',
+        subject: "Your password token",
         html: makeNiceEmail(`Your password reset token is here!
           \n\n
-          <a href="${process.env.FRONTEND_URL}/reset?resetToken=${resetToken}">Click here to reset</a>`)
+          <a href="${
+            process.env.FRONTEND_URL
+          }/reset?resetToken=${resetToken}">Click here to reset</a>`)
       });
 
       // return the message
-      return { message: 'Thanks!' };
+      return { message: "Thanks!" };
     },
 
-    resetPassword: async(_, args, context) => {
+    resetPassword: async (_, args, context) => {
       // 1. check if the passwords match
       if (args.password !== args.confirmPassword) {
-        throw new Error('Passwords don\'t match');
+        throw new Error("Passwords don't match");
       }
       // 2. check if its a legit reset token
       // 3. check if its expired
       const [user] = await User.find({
         $and: [
           { resetToken: args.resetToken },
-          { resetTokenExpiry: { $gt: Date.now()  - 3600000 }}
+          { resetTokenExpiry: { $gt: Date.now() - 3600000 } }
         ]
       });
 
       if (!user) {
-        throw new Error('This token is either invalid or expired!');
+        throw new Error("This token is either invalid or expired!");
       }
       // 4. hash their new password
       const password = await bcrypt.hash(args.password, 10);
 
       // 5. save a new password to the user and remove old resetToken fields
       const updatedUser = await User.findOneAndUpdate(
-        { "email": user.email },
+        { email: user.email },
         {
           $set: {
             password,
             resetToken: null,
             resetTokenExpiry: null
           }
-        });
+        }
+      );
 
       // 6. generate jwt
-      const token = jwt.sign({ userId: updatedUser.id }, process.env.APP_SECRET);
+      const token = jwt.sign(
+        { userId: updatedUser.id },
+        process.env.APP_SECRET
+      );
       // 7. set the jwt cookie
-      context.res.cookie('token', token, {
+      context.res.cookie("token", token, {
         httpOnly: true,
         maxAge: 1000 * 60 * 60 * 24 * 365
       });
@@ -334,14 +382,16 @@ module.exports.resolvers = {
       const item = await Item.findOne({ _id: id });
       // 2. check if they own that item, or have the permissions
       const ownsItem = item.user.id === context.req.userId;
-      const hasPermissions = context.req.user.permissions.some(permission => ['ADMIN', 'ITEMDELETE'].includes(permission));
+      const hasPermissions = context.req.user.permissions.some(permission =>
+        ["ADMIN", "ITEMDELETE"].includes(permission)
+      );
 
       if (!ownsItem && !hasPermissions) {
-        throw new Error('You dont have permissions to do that!');
+        throw new Error("You dont have permissions to do that!");
       }
 
       // 3. Delete it!
-      await Item.deleteOne({_id: id });
+      await Item.deleteOne({ _id: id });
 
       return { id };
     },
@@ -355,7 +405,7 @@ module.exports.resolvers = {
       // run the update method
 
       return Item.findOneAndUpdate(
-        { "_id": args.id },
+        { _id: args.id },
         {
           $set: {
             ...updates
@@ -368,7 +418,7 @@ module.exports.resolvers = {
       const { userId } = context.req;
 
       if (!userId) {
-        throw new Error('You must be signed in!');
+        throw new Error("You must be signed in!");
       }
       // 2. query the users current cart
       const existingCartItem = await CartItem.findOne({
@@ -378,13 +428,16 @@ module.exports.resolvers = {
 
       // 3. check if that item is already in their cart and if it is increment by 1
       if (existingCartItem) {
-        await CartItem.findOneAndUpdate({
-          _id: existingCartItem.id,
-        }, {
-          $set: {
-            quantity: existingCartItem.quantity + 1
+        await CartItem.findOneAndUpdate(
+          {
+            _id: existingCartItem.id
+          },
+          {
+            $set: {
+              quantity: existingCartItem.quantity + 1
+            }
           }
-        });
+        );
 
         return User.findOne({
           _id: userId
@@ -394,15 +447,19 @@ module.exports.resolvers = {
       const cartItem = await CartItem({ user: userId, item: id }).save();
 
       // 5. push cartItem id to User cart array
-      return User.findOneAndUpdate({
-        "_id": userId
-      }, {
-        $push: {
-          cart: cartItem._id
+      return User.findOneAndUpdate(
+        {
+          _id: userId
         },
-      }, {
-        new: true
-      });
+        {
+          $push: {
+            cart: cartItem._id
+          }
+        },
+        {
+          new: true
+        }
+      );
     },
     removeFromCart: async (_, { id }, context) => {
       const { userId } = context.req;
@@ -412,11 +469,11 @@ module.exports.resolvers = {
       });
 
       // 1.5 make sure we found an item
-      if (!cartItem) throw new Error('No CartItem Found!');
+      if (!cartItem) throw new Error("No CartItem Found!");
       // 2. make sure they own that cart item
       // TODO: Had to remove strict !== because req.userId is a string. Fix
       if (cartItem.user._id != userId) {
-        throw new Error('Cheating huh?!');
+        throw new Error("Cheating huh?!");
       }
       // 3. delete that cart item
       await CartItem.remove({
@@ -429,18 +486,22 @@ module.exports.resolvers = {
       // 1. query current user and make sure they are signed in
       const { userId } = context.req;
 
-      if (!userId) throw new Error('You must be signed in to complete this order.');
+      if (!userId)
+        throw new Error("You must be signed in to complete this order.");
 
       const user = await User.findOne({
         _id: userId
       });
 
       // 2. recalculate the total for the price
-      const amount = user.cart.reduce((tally, cartItem) => tally + cartItem.item.price * cartItem.quantity, 0);
+      const amount = user.cart.reduce(
+        (tally, cartItem) => tally + cartItem.item.price * cartItem.quantity,
+        0
+      );
       // 3. create the stripe charge (turn token into $$$)
       const charge = await stripe.charges.create({
         amount,
-        currency: 'USD',
+        currency: "USD",
         source: token
       });
 
@@ -476,11 +537,9 @@ module.exports.resolvers = {
       // 6. clean up - clear the users cart, delete cartItems
       const cartItemIds = user.cart.map(cartItem => cartItem.id);
 
-      await CartItem.deleteMany(
-        {
-          _id: { $in: cartItemIds }
-        }
-      );
+      await CartItem.deleteMany({
+        _id: { $in: cartItemIds }
+      });
 
       // 7. return the order to the client
       return order;

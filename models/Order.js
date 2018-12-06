@@ -26,6 +26,7 @@ const orderSchema = new Schema({
 
 function autopopulate(next) {
   this.populate('items');
+  this.populate('user');
   next();
 }
 
