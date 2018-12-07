@@ -483,13 +483,19 @@ module.exports.resolvers = {
       // 1.5 make sure we found an item
       if (!cartItem) throw new Error("No CartItem Found!");
       // 2. make sure they own that cart item
-      // TODO: Had to remove strict !== because req.userId is a string. Fix
-      if (cartItem.user._id != userId) {
+      if (cartItem.user._id.toString() !== userId) {
         throw new Error("Cheating huh?!");
       }
       // 3. delete that cart item
       await CartItem.remove({
         _id: id
+      });
+
+      // remove from user.cart array
+      await User.findOneAndUpdate({
+        _id: userId
+      }, {
+        $pull: { cart: id }
       });
 
       return cartItem;
@@ -552,6 +558,13 @@ module.exports.resolvers = {
       await CartItem.deleteMany({
         _id: { $in: cartItemIds }
       });
+
+      // remove from user.cart array
+      await User.findOneAndUpdate({
+        _id: userId
+      }, {
+          $pull: { cart: { $in: cartItemIds } }
+        });
 
       // 7. return the order to the client
       return order;
