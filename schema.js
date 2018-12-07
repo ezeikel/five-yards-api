@@ -563,8 +563,12 @@ module.exports.resolvers = {
       await User.findOneAndUpdate({
         _id: userId
       }, {
-          $pull: { cart: { $in: cartItemIds } }
-        });
+        $pull: {
+          cart: {
+            $in: cartItemIds
+          }
+        }
+      });
 
       // 7. return the order to the client
       return order;
