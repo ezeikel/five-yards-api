@@ -13,7 +13,7 @@ const { typeDefs, resolvers } = require('./schema');
 const app = express();
 
 // enable cors
-const allowedOrigins = ['http://localhost:3000', 'http://localhost:7777', 'http://five-yards.herokuapp.com', 'https://five-yards.herokuapp.com'];
+const allowedOrigins = ['http://localhost:3000', 'http://localhost:7777', 'https://fiveyards.app', 'http://five-yards.herokuapp.com', 'https://five-yards.herokuapp.com'];
 const corsOptions = {
   optionsSuccessStatus: 200,
   origin: (origin, callback) => {
