@@ -1,5 +1,3 @@
-console.log('START!');
-
 const mongoose = require('mongoose');
 require("colors");
 
@@ -26,7 +24,7 @@ require('./models/OrderItem');
 const scramble = (connectionString) => connectionString.replace(/:\/\/.*?\//, '://***/');
 
 // Start app & notify console of server boot and current settings
-const app = require('./api/app');
+const app = require('./app');
 
 // START SERVER
 
