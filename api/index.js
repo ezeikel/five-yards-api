@@ -1,5 +1,3 @@
-console.log('START!');
-
 const mongoose = require('mongoose');
 require("colors");
 
@@ -14,11 +12,11 @@ mongoose.connection.on('error', (err) => {
 });
 
 // Load mongodb collections on start up
-require('./models/User');
-require('./models/Item');
-require('./models/CartItem');
-require('./models/Order');
-require('./models/OrderItem');
+require('../models/User');
+require('../models/Item');
+require('../models/CartItem');
+require('../models/Order');
+require('../models/OrderItem');
 //require('./models/Shop');
 //require('./models/Review');
 
@@ -26,7 +24,7 @@ require('./models/OrderItem');
 const scramble = (connectionString) => connectionString.replace(/:\/\/.*?\//, '://***/');
 
 // Start app & notify console of server boot and current settings
-const app = require('./api/app');
+const app = require('../app');
 
 // START SERVER
 
