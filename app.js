@@ -12,7 +12,7 @@ const { typeDefs, resolvers } = require('./schema');
 const app = express();
 
 // enable cors
-const allowedOrigins = ['http://localhost:3000', 'http://localhost:7777', 'https://fiveyards.app', 'https://five-yards-api.ezeikel.now.sh'];
+const allowedOrigins = ['http://localhost:3000', 'https://fiveyards.app', 'http://localhost:7777', 'https://five-yards-api.ezeikel.now.sh', 'https://api.fiveyards.app/'];
 const corsOptions = {
   optionsSuccessStatus: 200,
   origin: (origin, callback) => {
