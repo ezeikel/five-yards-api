@@ -7,7 +7,8 @@
   "routes": [
       { "src": "/.*", "dest": "api/index.js" }
   ],
-  "env": {
+  "build": {
+    "env": {
       "APP_SECRET": "@app_secret",
       "NODE_ENV": "production",
       "PORT": "7777",
@@ -19,5 +20,6 @@
       "MAIL_PORT": "587",
       "MAIL_USER": "ezeikelpemberton@gmail.com",
       "STRIPE_SECRET": "sk_test_Oq2pvZncFSzyZ6OP2yMXuPgh"
+    }
   }
 }
