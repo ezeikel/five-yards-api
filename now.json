@@ -7,30 +7,15 @@
   "routes": [
       { "src": "/.*", "dest": "api/index.js" }
   ],
-  "build": {
-    "env": {
-      "APP_SECRET": "MHXoALvMkPk5v2dAVwLBdnmeXioX79OVn6pElXqdld21IIVHA6LSvTzq8oY3tYRMkWBXCEQQCYt84ThFZyxmq7TvstA1Ne0UALU6+EJb6uQh+cUYLhBx3TrgL+gbvO2eNoKCRG832eXKsoYvmZ8nZ9J3xgDbA6QPhZRHOYw0PQ/kMT9xJt5faYiJ0TkuiyQomeuJgPHa70jgIx+e2fFSgbIBCIf3355QMulp9O7Zzt0uUL/eA5Lqv6sU2eNCExvAZPMFup5FLGp9fjM48oXqeJGgLxL7JHytHB/6dIu71WVIi/VeUH4HsUTrh/P2pxm0Y2IgnugTK/KD9/6LL8QAYw==",
-      "DATABASE_ENDPOINT": "mongodb://ezeikel:Password123@ds249992.mlab.com:49992/five-yards-dev",
-      "FRONTEND_URL": "https://five-yards.herokuapp.com",
-      "MAIL_HOST": "smtp-relay.sendinblue.com",
-      "MAIL_PASS": "5JV9TaWH1BEKn0Xt",
-      "MAIL_PORT": "587",
-      "MAIL_USER": "ezeikelpemberton@gmail.com",
-      "MAP_KEY": "AIzaSyDQmv3K2R7X6wHANEARZFVxeh7szakcxKs",
-      "NODE_ENV": "production",
-      "PORT": "7777",
-      "STRIPE_SECRET": "sk_test_Oq2pvZncFSzyZ6OP2yMXuPgh"
-    }
-  },
   "env": {
-      "APP_SECRET": "MHXoALvMkPk5v2dAVwLBdnmeXioX79OVn6pElXqdld21IIVHA6LSvTzq8oY3tYRMkWBXCEQQCYt84ThFZyxmq7TvstA1Ne0UALU6+EJb6uQh+cUYLhBx3TrgL+gbvO2eNoKCRG832eXKsoYvmZ8nZ9J3xgDbA6QPhZRHOYw0PQ/kMT9xJt5faYiJ0TkuiyQomeuJgPHa70jgIx+e2fFSgbIBCIf3355QMulp9O7Zzt0uUL/eA5Lqv6sU2eNCExvAZPMFup5FLGp9fjM48oXqeJGgLxL7JHytHB/6dIu71WVIi/VeUH4HsUTrh/P2pxm0Y2IgnugTK/KD9/6LL8QAYw==",
-      "DATABASE_ENDPOINT": "mongodb://ezeikel:Password123@ds249992.mlab.com:49992/five-yards-dev",
-      "FRONTEND_URL": "https://five-yards.herokuapp.com",
+      "APP_SECRET": "@app_secret",
+      "DATABASE_ENDPOINT": "@database_endpoint",
+      "MAILCHIMP_KEY": "@mailchimp_key",
+      "FRONTEND_URL": "https://fiveyards.app",
       "MAIL_HOST": "smtp-relay.sendinblue.com",
       "MAIL_PASS": "5JV9TaWH1BEKn0Xt",
       "MAIL_PORT": "587",
       "MAIL_USER": "ezeikelpemberton@gmail.com",
-      "MAP_KEY": "AIzaSyDQmv3K2R7X6wHANEARZFVxeh7szakcxKs",
       "NODE_ENV": "production",
       "PORT": "7777",
       "STRIPE_SECRET": "sk_test_Oq2pvZncFSzyZ6OP2yMXuPgh"

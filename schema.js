@@ -230,7 +230,7 @@ module.exports.resolvers = {
         url: 'https://us20.api.mailchimp.com/3.0/lists/74779c67e7',
         method: 'POST',
         headers: {
-          Authorization: 'auth 9a74b486113f557e1974a8e8fe14c64f-us20',
+          Authorization: `auth ${process.env.MAILCHIMP_KEY}`,
         },
         body: mcDataPost
       };
