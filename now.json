@@ -9,15 +9,15 @@
   ],
   "env": {
       "APP_SECRET": "@app_secret",
+      "NODE_ENV": "production",
+      "PORT": "7777",
       "DATABASE_ENDPOINT": "@database_endpoint",
-      "MAILCHIMP_KEY": "@mailchimp_key",
       "FRONTEND_URL": "https://fiveyards.app",
+      "MAILCHIMP_KEY": "@mailchimp_key",
       "MAIL_HOST": "smtp-relay.sendinblue.com",
       "MAIL_PASS": "5JV9TaWH1BEKn0Xt",
       "MAIL_PORT": "587",
       "MAIL_USER": "ezeikelpemberton@gmail.com",
-      "NODE_ENV": "production",
-      "PORT": "7777",
       "STRIPE_SECRET": "sk_test_Oq2pvZncFSzyZ6OP2yMXuPgh"
   }
 }

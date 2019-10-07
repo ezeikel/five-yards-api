@@ -5,15 +5,16 @@ const defaults = require("../process.defaults");
 
 // variables needed by the server
 const keys = [
-  "DATABASE_ENDPOINT",
-  "PORT",
   "APP_SECRET",
+  "PORT",
+  "DATABASE_ENDPOINT",
   "FRONTEND_URL",
-  "STRIPE_SECRET",
+  "MAILCHIMP_KEY",
   "MAIL_HOST",
+  "MAIL_PASS",
   "MAIL_PORT",
   "MAIL_USER",
-  "MAIL_PASS",
+  "STRIPE_SECRET",
 ];
 
 let contents =
