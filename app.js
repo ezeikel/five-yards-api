@@ -1,6 +1,5 @@
 const express = require('express');
 const cors = require('cors');
-const path = require('path');
 const morgan = require('morgan');
 const cookierParser = require('cookie-parser');
 const mongoose = require('mongoose');
@@ -13,7 +12,7 @@ const { typeDefs, resolvers } = require('./schema');
 const app = express();
 
 // enable cors
-const allowedOrigins = ['http://localhost:3000', 'http://localhost:7777', 'https://fiveyards.app', 'http://five-yards.herokuapp.com', 'https://five-yards.herokuapp.com'];
+const allowedOrigins = ['http://localhost:3000', 'https://fiveyards.app', 'http://localhost:7777', 'https://five-yards-api.ezeikel.now.sh', 'https://api.fiveyards.app'];
 const corsOptions = {
   optionsSuccessStatus: 200,
   origin: (origin, callback) => {
@@ -67,6 +66,8 @@ ObjectId.prototype.valueOf = function () {
 const server = new ApolloServer({
   typeDefs,
   resolvers,
+  introspection: true, // enables introspection of the schema
+  playground: true, // enables the actual playground
   context: req => ({ ...req })
 });
 // graphQL endpoint
