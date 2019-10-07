@@ -12,6 +12,7 @@ const CartItem = mongoose.model('CartItem');
 const Order = mongoose.model('Order');
 const OrderItem = mongoose.model('OrderItem');
 const stripe = require("./stripe");
+const rp = require('request-promise');
 
 // defining "shape" of data
 module.exports.typeDefs = gql`
@@ -126,6 +127,7 @@ module.exports.typeDefs = gql`
     addToCart(id: ID!): User!
     removeFromCart(id: ID!): CartItem
     createOrder(token: String!): Order!
+    requestLaunchNotification(firstName: String!, email: String!): SuccessMessage
   }
 `;
 
@@ -208,6 +210,40 @@ module.exports.resolvers = {
 
       return item;
     },
+
+    requestLaunchNotification: async(_, { firstName, email }, context) => {
+      const mcData = {
+        members: [
+          {
+            email_address: email,
+            status: 'pending',
+            merge_fields: {
+              FNAME: firstName
+            }
+          }
+        ]
+      };
+
+      const mcDataPost = JSON.stringify(mcData);
+
+      const options = {
+        url: 'https://us20.api.mailchimp.com/3.0/lists/74779c67e7',
+        method: 'POST',
+        headers: {
+          Authorization: 'auth 9a74b486113f557e1974a8e8fe14c64f-us20',
+        },
+        body: mcDataPost
+      };
+
+      try {
+        await rp(options);
+        return { message: "Success." };
+      } catch(error) {
+        return { message: "Failed." };
+      }
+
+    },
+
     signup: async (_, { email, fullName, username, password }, context) => {
       email = email.toLowerCase();
 
