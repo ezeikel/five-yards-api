@@ -15,8 +15,7 @@
     "test": "is-ci \"test:coverage\" \"test:watch\"",
     "test:coverage": "jest --coverage",
     "test:watch": "jest --watch",
-    "test:debug": "node --inspect-brk ./node_modules/jest/bin/jest.js --runInBand --watch",
-    "validate": "npm-run-all --parallel test:coverage lint"
+    "test:debug": "node --inspect-brk ./node_modules/jest/bin/jest.js --runInBand --watch"
   },
   "jest-runner-eslint": {
     "cliOptions": {
