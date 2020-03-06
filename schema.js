@@ -1,18 +1,18 @@
-const { gql } = require('apollo-server-express');
-const { GraphQLScalarType } = require('graphql');
-const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-const { randomBytes } = require('crypto');
-const { promisify } = require('util');
-const { transport, makeNiceEmail } = require('./mail');
-const User = mongoose.model('User');
-const Item = mongoose.model('Item');
-const CartItem = mongoose.model('CartItem');
-const Order = mongoose.model('Order');
-const OrderItem = mongoose.model('OrderItem');
+const { gql } = require("apollo-server-express");
+const { GraphQLScalarType } = require("graphql");
+const mongoose = require("mongoose");
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
+const { randomBytes } = require("crypto");
+const { promisify } = require("util");
+const { transport, makeNiceEmail } = require("./mail");
+const User = mongoose.model("User");
+const Item = mongoose.model("Item");
+const CartItem = mongoose.model("CartItem");
+const Order = mongoose.model("Order");
+const OrderItem = mongoose.model("OrderItem");
 const stripe = require("./stripe");
-const rp = require('request-promise');
+const rp = require("request-promise");
 
 // defining "shape" of data
 module.exports.typeDefs = gql`
@@ -127,7 +127,10 @@ module.exports.typeDefs = gql`
     addToCart(id: ID!): User!
     removeFromCart(id: ID!): CartItem
     createOrder(token: String!): Order!
-    requestLaunchNotification(firstName: String!, email: String!): SuccessMessage
+    requestLaunchNotification(
+      firstName: String!
+      email: String!
+    ): SuccessMessage
   }
 `;
 
@@ -147,7 +150,7 @@ module.exports.resolvers = {
         return new Date(ast.value); // ast value is always in string format
       }
       return null;
-    }
+    },
   }),
   Query: {
     me: async (_, args, context) => {
@@ -185,16 +188,20 @@ module.exports.resolvers = {
       const { userId } = context.req;
 
       if (!userId) {
-        throw new Error('You must be signed in!');
+        throw new Error("You must be signed in!");
       }
 
       return Order.find({
-        user: userId
+        user: userId,
       });
-    }
+    },
   },
   Mutation: {
-    createItem: async (_, { title, description, image, largeImage, price }, context) => {
+    createItem: async (
+      _,
+      { title, description, image, largeImage, price },
+      context,
+    ) => {
       if (!context.req.userId) {
         throw new Error("You must be logged in to do that!");
       }
@@ -205,43 +212,42 @@ module.exports.resolvers = {
         image,
         largeImage,
         price,
-        user: context.req.userId
+        user: context.req.userId,
       }).save();
 
       return item;
     },
 
-    requestLaunchNotification: async(_, { firstName, email }, context) => {
+    requestLaunchNotification: async (_, { firstName, email }, context) => {
       const mcData = {
         members: [
           {
             email_address: email,
-            status: 'pending',
+            status: "pending",
             merge_fields: {
-              FNAME: firstName
-            }
-          }
-        ]
+              FNAME: firstName,
+            },
+          },
+        ],
       };
 
       const mcDataPost = JSON.stringify(mcData);
 
       const options = {
-        url: 'https://us20.api.mailchimp.com/3.0/lists/74779c67e7',
-        method: 'POST',
+        url: "https://us20.api.mailchimp.com/3.0/lists/74779c67e7",
+        method: "POST",
         headers: {
           Authorization: `auth ${process.env.MAILCHIMP_KEY}`,
         },
-        body: mcDataPost
+        body: mcDataPost,
       };
 
       try {
         await rp(options);
         return { message: "Success." };
-      } catch(error) {
+      } catch (error) {
         return { message: "Failed." };
       }
-
     },
 
     signup: async (_, { email, fullName, username, password }, context) => {
@@ -250,7 +256,7 @@ module.exports.resolvers = {
       const exists = await User.findOne({ email });
       if (exists) {
         throw new Error(
-          "email: Hmm, a user with that email already exists. Use another one or sign in."
+          "email: Hmm, a user with that email already exists. Use another one or sign in.",
         );
       }
 
@@ -265,7 +271,7 @@ module.exports.resolvers = {
         password: hashedPassword,
         permissions: "USER",
         resetToken: null,
-        resetTokenExpiry: null
+        resetTokenExpiry: null,
       }).save();
 
       // generate signed json web token with user.id as payload and APP_SECRET as private key
@@ -274,7 +280,7 @@ module.exports.resolvers = {
       // return 'token' cookie as a reponse header with jwt as its value. Expires in one year.
       context.res.cookie("token", token, {
         maxAge: 1000 * 60 * 60 * 24 * 365,
-        httpOnly: true
+        httpOnly: true,
       });
 
       // return relevant user properties
@@ -286,7 +292,7 @@ module.exports.resolvers = {
         fullName,
         username,
         cart,
-        permissions
+        permissions,
       };
     },
 
@@ -296,7 +302,7 @@ module.exports.resolvers = {
 
       if (!user) {
         throw new Error(
-          "email: Hmm, we couldn't find that email in our records. Try again."
+          "email: Hmm, we couldn't find that email in our records. Try again.",
         );
       }
 
@@ -305,7 +311,7 @@ module.exports.resolvers = {
 
       if (!valid) {
         throw new Error(
-          "password: Hmm, that password doesn't match the one we have on record. Try again."
+          "password: Hmm, that password doesn't match the one we have on record. Try again.",
         );
       }
 
@@ -315,7 +321,7 @@ module.exports.resolvers = {
       // set the cookie with the token
       context.res.cookie("token", token, {
         httpOnly: true,
-        maxAge: 1000 * 60 * 60 * 24 * 365
+        maxAge: 1000 * 60 * 60 * 24 * 365,
       });
 
       // return relevant user properties
@@ -327,7 +333,7 @@ module.exports.resolvers = {
         fullName,
         username,
         cart,
-        permissions
+        permissions,
       };
     },
 
@@ -342,7 +348,7 @@ module.exports.resolvers = {
 
       if (!user) {
         throw new Error(
-          "email: Hmm, we couldn't find that email in our records. Try again."
+          "email: Hmm, we couldn't find that email in our records. Try again.",
         );
       }
 
@@ -356,9 +362,9 @@ module.exports.resolvers = {
         {
           $set: {
             resetToken,
-            resetTokenExpiry
-          }
-        }
+            resetTokenExpiry,
+          },
+        },
       );
 
       // email the user the reset token
@@ -368,9 +374,7 @@ module.exports.resolvers = {
         subject: "Your password token",
         html: makeNiceEmail(`Your password reset token is here!
           \n\n
-          <a href="${
-            process.env.FRONTEND_URL
-          }/reset?resetToken=${resetToken}">Click here to reset</a>`)
+          <a href="${process.env.FRONTEND_URL}/reset?resetToken=${resetToken}">Click here to reset</a>`),
       });
 
       // return the message
@@ -387,8 +391,8 @@ module.exports.resolvers = {
       const [user] = await User.find({
         $and: [
           { resetToken: args.resetToken },
-          { resetTokenExpiry: { $gt: Date.now() - 3600000 } }
-        ]
+          { resetTokenExpiry: { $gt: Date.now() - 3600000 } },
+        ],
       });
 
       if (!user) {
@@ -404,20 +408,20 @@ module.exports.resolvers = {
           $set: {
             password,
             resetToken: null,
-            resetTokenExpiry: null
-          }
-        }
+            resetTokenExpiry: null,
+          },
+        },
       );
 
       // 6. generate jwt
       const token = jwt.sign(
         { userId: updatedUser.id },
-        process.env.APP_SECRET
+        process.env.APP_SECRET,
       );
       // 7. set the jwt cookie
       context.res.cookie("token", token, {
         httpOnly: true,
-        maxAge: 1000 * 60 * 60 * 24 * 365
+        maxAge: 1000 * 60 * 60 * 24 * 365,
       });
       // 8. return the new user
 
@@ -431,7 +435,7 @@ module.exports.resolvers = {
       // 2. check if they own that item, or have the permissions
       const ownsItem = item.user.id === context.req.userId;
       const hasPermissions = context.req.user.permissions.some(permission =>
-        ["ADMIN", "ITEMDELETE"].includes(permission)
+        ["ADMIN", "ITEMDELETE"].includes(permission),
       );
 
       if (!ownsItem && !hasPermissions) {
@@ -456,9 +460,9 @@ module.exports.resolvers = {
         { _id: args.id },
         {
           $set: {
-            ...updates
-          }
-        }
+            ...updates,
+          },
+        },
       );
     },
     addToCart: async (_, { id }, context) => {
@@ -471,24 +475,24 @@ module.exports.resolvers = {
       // 2. query the users current cart
       const existingCartItem = await CartItem.findOne({
         user: userId,
-        item: id
+        item: id,
       });
 
       // 3. check if that item is already in their cart and if it is increment by 1
       if (existingCartItem) {
         await CartItem.findOneAndUpdate(
           {
-            _id: existingCartItem.id
+            _id: existingCartItem.id,
           },
           {
             $set: {
-              quantity: existingCartItem.quantity + 1
-            }
-          }
+              quantity: existingCartItem.quantity + 1,
+            },
+          },
         );
 
         return User.findOne({
-          _id: userId
+          _id: userId,
         });
       }
       // 4. if its not, create a fresh CartItem for that user
@@ -497,23 +501,23 @@ module.exports.resolvers = {
       // 5. push cartItem id to User cart array
       return User.findOneAndUpdate(
         {
-          _id: userId
+          _id: userId,
         },
         {
           $push: {
-            cart: cartItem._id
-          }
+            cart: cartItem._id,
+          },
         },
         {
-          new: true
-        }
+          new: true,
+        },
       );
     },
     removeFromCart: async (_, { id }, context) => {
       const { userId } = context.req;
       // 1. find the cart item
       const cartItem = await CartItem.findOne({
-        _id: id
+        _id: id,
       });
 
       // 1.5 make sure we found an item
@@ -524,15 +528,18 @@ module.exports.resolvers = {
       }
       // 3. delete that cart item
       await CartItem.remove({
-        _id: id
+        _id: id,
       });
 
       // remove from user.cart array
-      await User.findOneAndUpdate({
-        _id: userId
-      }, {
-        $pull: { cart: id }
-      });
+      await User.findOneAndUpdate(
+        {
+          _id: userId,
+        },
+        {
+          $pull: { cart: id },
+        },
+      );
 
       return cartItem;
     },
@@ -544,19 +551,19 @@ module.exports.resolvers = {
         throw new Error("You must be signed in to complete this order.");
 
       const user = await User.findOne({
-        _id: userId
+        _id: userId,
       });
 
       // 2. recalculate the total for the price
       const amount = user.cart.reduce(
         (tally, cartItem) => tally + cartItem.item.price * cartItem.quantity,
-        0
+        0,
       );
       // 3. create the stripe charge (turn token into $$$)
       const charge = await stripe.charges.create({
         amount,
         currency: "USD",
-        source: token
+        source: token,
       });
 
       // 4. convert the CartItems to OrderItems
@@ -565,7 +572,7 @@ module.exports.resolvers = {
         const orderItem = {
           ...cartItem.item,
           quantity: cartItem.quantity,
-          user: cartItem.user
+          user: cartItem.user,
         };
         delete orderItem._id;
         return orderItem;
@@ -580,34 +587,37 @@ module.exports.resolvers = {
         total: charge.amount,
         charge: charge.id,
         items: [...orderItemIds],
-        user: userId
+        user: userId,
       }).save();
 
       // TODO: Might be an easier way to create a Document and get its populated fields returned too
       const order = await Order.findOne({
-        _id
+        _id,
       });
 
       // 6. clean up - clear the users cart, delete cartItems
       const cartItemIds = user.cart.map(cartItem => cartItem.id);
 
       await CartItem.deleteMany({
-        _id: { $in: cartItemIds }
+        _id: { $in: cartItemIds },
       });
 
       // remove from user.cart array
-      await User.findOneAndUpdate({
-        _id: userId
-      }, {
-        $pull: {
-          cart: {
-            $in: cartItemIds
-          }
-        }
-      });
+      await User.findOneAndUpdate(
+        {
+          _id: userId,
+        },
+        {
+          $pull: {
+            cart: {
+              $in: cartItemIds,
+            },
+          },
+        },
+      );
 
       // 7. return the order to the client
       return order;
-    }
-  }
+    },
+  },
 };

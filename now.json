@@ -1,12 +1,8 @@
 {
   "version": 2,
   "name": "five-yards-api",
-  "builds": [
-      { "src": "api/index.js", "use": "@now/node-server" }
-  ],
-  "routes": [
-      { "src": "/.*", "dest": "api/index.js" }
-  ],
+  "builds": [{ "src": "api/index.js", "use": "@now/node-server" }],
+  "routes": [{ "src": "/.*", "dest": "api/index.js" }],
   "build": {
     "env": {
       "APP_SECRET": "@app_secret",

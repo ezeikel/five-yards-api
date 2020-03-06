@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 const { Schema } = mongoose;
 mongoose.Promise = global.Promise;
 
@@ -11,21 +11,21 @@ const orderItemSchema = new Schema({
   price: Number,
   quantity: {
     type: Number,
-    default: 1
+    default: 1,
   },
   user: {
     type: mongoose.Schema.ObjectId,
-    ref: 'User'
+    ref: "User",
   },
   createdAt: {
     type: Date,
-    default: Date.now
+    default: Date.now,
   },
   updatedAt: {
     type: Date,
-    default: Date.now
-  }
+    default: Date.now,
+  },
 });
 
 // compile model and export
-module.exports = mongoose.model('OrderItem', orderItemSchema);
+module.exports = mongoose.model("OrderItem", orderItemSchema);

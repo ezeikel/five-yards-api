@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 const { Schema } = mongoose;
 mongoose.Promise = global.Promise;
 
@@ -6,33 +6,33 @@ mongoose.Promise = global.Promise;
 const cartItemSchema = new Schema({
   quantity: {
     type: Number,
-    default: 1
+    default: 1,
   },
   item: {
     type: mongoose.Schema.ObjectId,
-    ref: 'Item'
+    ref: "Item",
   },
   user: {
     type: mongoose.Schema.ObjectId,
-    ref: 'User'
+    ref: "User",
   },
   createdAt: {
     type: Date,
-    default: Date.now
+    default: Date.now,
   },
   updatedAt: {
     type: Date,
-    default: Date.now
-  }
+    default: Date.now,
+  },
 });
 
 function autopopulate(next) {
-  this.populate('item');
+  this.populate("item");
   next();
 }
 
-cartItemSchema.pre('find', autopopulate);
-cartItemSchema.pre('findOne', autopopulate);
+cartItemSchema.pre("find", autopopulate);
+cartItemSchema.pre("findOne", autopopulate);
 
 // compile model and export
-module.exports = mongoose.model('CartItem', cartItemSchema);
+module.exports = mongoose.model("CartItem", cartItemSchema);

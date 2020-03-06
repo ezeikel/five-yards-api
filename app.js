@@ -1,24 +1,30 @@
-const express = require('express');
-const cors = require('cors');
-const morgan = require('morgan');
-const cookierParser = require('cookie-parser');
-const mongoose = require('mongoose');
-const jwt = require('jsonwebtoken');
-const User = mongoose.model('User');
-const { ApolloServer } = require('apollo-server-express');
-const { typeDefs, resolvers } = require('./schema');
-const Sentry = require('@sentry/node');
+const express = require("express");
+const cors = require("cors");
+const morgan = require("morgan");
+const cookierParser = require("cookie-parser");
+const mongoose = require("mongoose");
+const jwt = require("jsonwebtoken");
+const User = mongoose.model("User");
+const { ApolloServer } = require("apollo-server-express");
+const { typeDefs, resolvers } = require("./schema");
+const Sentry = require("@sentry/node");
 
 Sentry.init({
   environment: process.NODE_ENV,
-  dsn: 'https://c3eb06446d2240638d912d749392ac15@sentry.io/3399012'
+  dsn: "https://c3eb06446d2240638d912d749392ac15@sentry.io/3399012",
 });
 
 // create express app
 const app = express();
 
 // enable cors
-const allowedOrigins = ['http://localhost:3000', 'https://fiveyards.app', 'http://localhost:7777', 'https://five-yards-api.ezeikel.now.sh', 'https://api.fiveyards.app'];
+const allowedOrigins = [
+  "http://localhost:3000",
+  "https://fiveyards.app",
+  "http://localhost:7777",
+  "https://five-yards-api.ezeikel.now.sh",
+  "https://api.fiveyards.app",
+];
 const corsOptions = {
   optionsSuccessStatus: 200,
   origin: (origin, callback) => {
@@ -31,8 +37,8 @@ const corsOptions = {
   },
   credentials: true,
   // for older browsers that can't handle 204
-  optionsSuccessStatus: 200
-}
+  optionsSuccessStatus: 200,
+};
 
 app.use(cors(corsOptions));
 
@@ -58,14 +64,17 @@ app.use(async (req, res, next) => {
   if (!req.userId) return next();
 
   // bring back specific fields from User
-  const user = await User.findOne({ id: req.id }, { permissions: 1, email: 1, fullName: 1 });
+  const user = await User.findOne(
+    { id: req.id },
+    { permissions: 1, email: 1, fullName: 1 },
+  );
   req.user = user;
   next();
 });
 
 // ISSUE: https://github.com/apollographql/apollo-server/issues/1633
 const { ObjectId } = mongoose.Types;
-ObjectId.prototype.valueOf = function () {
+ObjectId.prototype.valueOf = function() {
   return this.toString();
 };
 
@@ -74,10 +83,10 @@ const server = new ApolloServer({
   resolvers,
   introspection: true, // enables introspection of the schema
   playground: true, // enables the actual playground
-  context: req => ({ ...req })
+  context: req => ({ ...req }),
 });
 // graphQL endpoint
-server.applyMiddleware({ app, path: '/graphql', cors: false });
+server.applyMiddleware({ app, path: "/graphql", cors: false });
 
 // export it so we can start the site in start.js
 module.exports = app;
