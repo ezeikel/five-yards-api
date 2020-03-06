@@ -37,7 +37,6 @@ const corsOptions = {
   },
   credentials: true,
   // for older browsers that can't handle 204
-  optionsSuccessStatus: 200,
 };
 
 app.use(cors(corsOptions));

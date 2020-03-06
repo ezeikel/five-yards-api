@@ -146,6 +146,8 @@ module.exports.resolvers = {
       return value.getTime(); // value sent to client
     },
     parseLiteral(ast) {
+      // TODO: figure out where global kind is set and then remove eslint comment
+      // eslint-disable-next-line no-undef
       if (ast.kind === kind.INT) {
         return new Date(ast.value); // ast value is always in string format
       }
@@ -164,7 +166,7 @@ module.exports.resolvers = {
       return user;
     },
     users: () => User.find(),
-    item: (_, { id }, context) => Item.findOne({ _id: id }),
+    item: (_, { id }) => Item.findOne({ _id: id }),
     items: () => Item.find(),
     order: async (_, { id }, context) => {
       // 1. make sure they are logged in
@@ -218,7 +220,7 @@ module.exports.resolvers = {
       return item;
     },
 
-    requestLaunchNotification: async (_, { firstName, email }, context) => {
+    requestLaunchNotification: async (_, { firstName, email }) => {
       const mcData = {
         members: [
           {
@@ -342,7 +344,7 @@ module.exports.resolvers = {
       return { message: "Goodbye!" };
     },
 
-    requestReset: async (_, args, context) => {
+    requestReset: async (_, args) => {
       // check if this is a real user
       const user = await User.findOne({ email: args.email });
 
@@ -429,7 +431,7 @@ module.exports.resolvers = {
       return updatedUser;
     },
 
-    deleteItem: async (_, { id }, context, info) => {
+    deleteItem: async (_, { id }, context) => {
       // 1. find the item
       const item = await Item.findOne({ _id: id });
       // 2. check if they own that item, or have the permissions
@@ -448,7 +450,7 @@ module.exports.resolvers = {
       return { id };
     },
 
-    updateItem: (_, args, context) => {
+    updateItem: (_, args) => {
       // first take a copy of the updates
       const updates = { ...args };
 
