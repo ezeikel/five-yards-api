@@ -72,9 +72,11 @@ module.exports.typeDefs = gql`
     resetToken: String
     resetTokenExpiry: String
     cart: [CartItem!]
+    hasBusiness: Boolean!
+    requestedDeletion: Boolean!
+    permissions: [Permission]!
     createdAt: Date!
     updatedAt: Date!
-    permissions: [Permission]!
   }
 
   type Order {
@@ -122,6 +124,8 @@ module.exports.typeDefs = gql`
       password: String!
       confirmPassword: String!
     ): User!
+    deleteUser(id: ID!): User!
+    cancelDeleteUser(id: ID!): User!
     deleteItem(id: ID!): Item
     updateItem(id: ID!, title: String, description: String, price: Int): Item!
     addToCart(id: ID!): User!
@@ -429,6 +433,30 @@ module.exports.resolvers = {
 
       // TODO: Are we returning EVERYTHING ON USER HERE?! Select fields
       return updatedUser;
+    },
+
+    deleteUser: (_, { id }) => {
+      return User.findOneAndUpdate(
+        { _id: id },
+        {
+          $set: {
+            requestedDeletion: true,
+          },
+        },
+        { new: true },
+      );
+    },
+
+    cancelDeleteUser: (_, { id }) => {
+      return User.findOneAndUpdate(
+        { _id: id },
+        {
+          $set: {
+            requestedDeletion: false,
+          },
+        },
+        { new: true },
+      );
     },
 
     deleteItem: async (_, { id }, context) => {

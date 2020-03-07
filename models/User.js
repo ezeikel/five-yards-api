@@ -40,6 +40,15 @@ const userSchema = new Schema({
       ref: "CartItem",
     },
   ],
+  hasBusiness: {
+    type: Boolean,
+    default: false,
+  },
+  requestedDeletion: {
+    type: Boolean,
+    default: false,
+  },
+  permissions: [String],
   createdAt: {
     type: Date,
     default: Date.now,
@@ -48,7 +57,6 @@ const userSchema = new Schema({
     type: Date,
     default: Date.now,
   },
-  permissions: [String],
 });
 
 // grab gravatar image based on email addresss
