@@ -108,3 +108,4 @@ typings/
 # misc
 variables.env
 process.defaults.js
+.now
