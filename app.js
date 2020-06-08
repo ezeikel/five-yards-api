@@ -10,6 +10,7 @@ const { typeDefs, resolvers } = require("./schema");
 const Sentry = require("@sentry/node");
 
 Sentry.init({
+  enabled: process.env.NODE_ENV === "production",
   environment: process.NODE_ENV,
   dsn: "https://c3eb06446d2240638d912d749392ac15@sentry.io/3399012",
 });
