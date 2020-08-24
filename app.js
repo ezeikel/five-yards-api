@@ -42,6 +42,9 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 
+// static files
+app.use(express.static("public"));
+
 // log all requests to the console
 if (process.env.SILENCE_LOGS !== "true") {
   app.use(morgan("dev"));
