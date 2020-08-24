@@ -1,8 +1,8 @@
 const mongoose = require("mongoose");
 require("colors");
 
-// import environment variables from the variables.env file
-require("dotenv").config({ path: "variables.env" });
+// import environment variables from the .env file
+require("dotenv").config({ path: ".env" });
 
 // Connect to the Database and handle any bad connections
 mongoose.connect(process.env.DATABASE_ENDPOINT, { useNewUrlParser: true });

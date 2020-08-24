@@ -107,6 +107,7 @@ typings/
 
 # misc
 variables.env
+.env
 process.defaults.js
 .now
 .vercel

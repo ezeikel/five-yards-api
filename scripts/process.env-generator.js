@@ -29,10 +29,10 @@ keys.forEach(key => {
   contents += `\n${key} = ${val}`;
 });
 
-writeFile("./variables.env", contents, err => {
+writeFile("./.env", contents, err => {
   if (err) {
     console.log(err);
   }
 
-  console.log("variables.env generated");
+  console.log(".env generated");
 });

@@ -43,7 +43,7 @@ const corsOptions = {
 app.use(cors(corsOptions));
 
 // static files
-app.use(express.static("public"));
+app.use(express.static(__dirname + "/public"));
 
 // log all requests to the console
 if (process.env.SILENCE_LOGS !== "true") {
