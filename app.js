@@ -10,6 +10,7 @@ const { typeDefs, resolvers } = require("./schema");
 const Sentry = require("@sentry/node");
 
 Sentry.init({
+  enabled: process.env.NODE_ENV === "production",
   environment: process.NODE_ENV,
   dsn: "https://c3eb06446d2240638d912d749392ac15@sentry.io/3399012",
 });
@@ -40,6 +41,9 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
+
+// static files
+app.use(express.static(__dirname + "/public"));
 
 // log all requests to the console
 if (process.env.SILENCE_LOGS !== "true") {
