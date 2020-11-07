@@ -8,6 +8,7 @@ const User = mongoose.model("User");
 const { ApolloServer } = require("apollo-server-express");
 const { typeDefs, resolvers } = require("./schema");
 const Sentry = require("@sentry/node");
+const session = require("express-session");
 
 Sentry.init({
   enabled: process.env.NODE_ENV === "production",
@@ -45,6 +46,14 @@ app.use(cors(corsOptions));
 // static files
 app.use(express.static(__dirname + "/public"));
 
+app.use(
+  session({
+    secret: "Set this to a random string that is kept secure",
+    resave: false,
+    saveUninitialized: true,
+  }),
+);
+
 // log all requests to the console
 if (process.env.SILENCE_LOGS !== "true") {
   app.use(morgan("dev"));
@@ -77,7 +86,7 @@ app.use(async (req, res, next) => {
 
 // ISSUE: https://github.com/apollographql/apollo-server/issues/1633
 const { ObjectId } = mongoose.Types;
-ObjectId.prototype.valueOf = function() {
+ObjectId.prototype.valueOf = function () {
   return this.toString();
 };
 
@@ -86,7 +95,7 @@ const server = new ApolloServer({
   resolvers,
   introspection: true, // enables introspection of the schema
   playground: true, // enables the actual playground
-  context: req => ({ ...req }),
+  context: (req) => ({ ...req }),
 });
 // graphQL endpoint
 server.applyMiddleware({ app, path: "/graphql", cors: false });

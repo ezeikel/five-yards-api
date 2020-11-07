@@ -5,14 +5,25 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { randomBytes } = require("crypto");
 const { promisify } = require("util");
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY); // TODO: move back to seperate file
 const { transport, makeNiceEmail } = require("./mail");
 const User = mongoose.model("User");
 const Item = mongoose.model("Item");
 const CartItem = mongoose.model("CartItem");
 const Order = mongoose.model("Order");
 const OrderItem = mongoose.model("OrderItem");
-const stripe = require("./stripe");
 const rp = require("request-promise");
+
+function generateAccountLink(accountID, origin) {
+  return stripe.accountLinks
+    .create({
+      type: "account_onboarding",
+      account: accountID,
+      refresh_url: `${process.env.FRONTEND_URL}/onboard-user/refresh`,
+      return_url: `${process.env.FRONTEND_URL}/onboard-user/success`,
+    })
+    .then((link) => link.url);
+}
 
 // defining "shape" of data
 module.exports.typeDefs = gql`
@@ -40,6 +51,10 @@ module.exports.typeDefs = gql`
 
   type SuccessMessage {
     message: String
+  }
+
+  type StripeAccountLink {
+    url: String
   }
 
   type Item {
@@ -135,6 +150,8 @@ module.exports.typeDefs = gql`
       firstName: String!
       email: String!
     ): SuccessMessage
+    onboardStripeUser: StripeAccountLink!
+    onboardStripeRefresh: StripeAccountLink!
   }
 `;
 
@@ -159,6 +176,9 @@ module.exports.resolvers = {
     },
   }),
   Query: {
+    // secret: () => {
+    //   const intent = res.json({ client_secret: intent.client_secret }); // ... Fetch or create the PaymentIntent
+    // },
     me: async (_, args, context) => {
       // check if there is a current user id
       if (!context.req.userId) {
@@ -203,6 +223,46 @@ module.exports.resolvers = {
     },
   },
   Mutation: {
+    onboardStripeUser: async (_, data, { req }) => {
+      try {
+        const account = await stripe.accounts.create({ type: "express" });
+        req.session.accountID = account.id;
+
+        const origin = `${req.headers.origin}`;
+        const accountLinkURL = await generateAccountLink(account.id, origin);
+
+        return { url: accountLinkURL };
+
+        // res.send({ url: accountLinkURL });
+      } catch (err) {
+        throw new Error(err.message);
+        // res.status(500).send({
+        //   error: err.message,
+        // });
+      }
+    },
+    onboardStripeRefresh: async (_, data, { req }) => {
+      if (!req.session.accountID) {
+        throw new Error("No accountID found for session.");
+        // res.redirect("/");
+        // return;
+      }
+      try {
+        const { accountID } = req.session;
+        const origin = `${req.secure ? "https://" : "https://"}${
+          req.headers.host
+        }`;
+
+        const accountLinkURL = await generateAccountLink(accountID, origin);
+        return { url: accountLinkURL };
+        // res.redirect(accountLinkURL);
+      } catch (err) {
+        throw new Error(err.message);
+        // res.status(500).send({
+        //   error: err.message,
+        // });
+      }
+    },
     createItem: async (
       _,
       { title, description, image, largeImage, price },
@@ -464,7 +524,7 @@ module.exports.resolvers = {
       const item = await Item.findOne({ _id: id });
       // 2. check if they own that item, or have the permissions
       const ownsItem = item.user.id === context.req.userId;
-      const hasPermissions = context.req.user.permissions.some(permission =>
+      const hasPermissions = context.req.user.permissions.some((permission) =>
         ["ADMIN", "ITEMDELETE"].includes(permission),
       );
 
@@ -598,7 +658,7 @@ module.exports.resolvers = {
 
       // 4. convert the CartItems to OrderItems
       // toObject() removes pulls out data in mongoose _doc property - https://github.com/Automattic/mongoose/issues/516
-      const orderItems = user.toObject().cart.map(cartItem => {
+      const orderItems = user.toObject().cart.map((cartItem) => {
         const orderItem = {
           ...cartItem.item,
           quantity: cartItem.quantity,
@@ -610,7 +670,7 @@ module.exports.resolvers = {
 
       const documents = await OrderItem.insertMany(orderItems);
 
-      const orderItemIds = documents.map(orderItem => orderItem._id);
+      const orderItemIds = documents.map((orderItem) => orderItem._id);
 
       // 5. create the order
       const { _id } = await Order({
@@ -626,7 +686,7 @@ module.exports.resolvers = {
       });
 
       // 6. clean up - clear the users cart, delete cartItems
-      const cartItemIds = user.cart.map(cartItem => cartItem.id);
+      const cartItemIds = user.cart.map((cartItem) => cartItem.id);
 
       await CartItem.deleteMany({
         _id: { $in: cartItemIds },

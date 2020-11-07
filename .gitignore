@@ -85,6 +85,7 @@ typings/
 
 # dotenv environment variables file
 .env
+variables.env
 
 # parcel-bundler cache (https://parceljs.org/)
 .cache
@@ -106,8 +107,6 @@ typings/
 
 
 # misc
-variables.env
-.env
 process.defaults.js
 .now
 .vercel
