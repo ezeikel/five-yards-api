@@ -41,7 +41,7 @@ module.exports.typeDefs = gql`
   }
 
   type Query {
-    me: User
+    currentUser: User
     users: [User]!
     item(id: ID!): Item
     items: [Item]!
@@ -179,7 +179,7 @@ module.exports.resolvers = {
     // secret: () => {
     //   const intent = res.json({ client_secret: intent.client_secret }); // ... Fetch or create the PaymentIntent
     // },
-    me: async (_, args, context) => {
+    currentUser: async (_, args, context) => {
       // check if there is a current user id
       if (!context.req.userId) {
         return null;
