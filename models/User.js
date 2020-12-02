@@ -8,15 +8,15 @@ const passportLocalMongoose = require("passport-local-mongoose");
 
 // document structure
 const userSchema = new Schema({
-  fullName: {
+  firstName: {
     type: String,
-    required: "Please supply a name",
+    required: "Please supply a last name",
     trim: true,
     lowercase: true,
   },
-  username: {
+  lastName: {
     type: String,
-    required: "Please supply a username",
+    required: "Please supply a first name",
     trim: true,
     lowercase: true,
   },
@@ -60,20 +60,9 @@ const userSchema = new Schema({
 });
 
 // grab gravatar image based on email addresss
-userSchema.virtual("gravatar").get(function() {
+userSchema.virtual("gravatar").get(function () {
   const hash = md5(this.email);
   return `https://gravatar.com/avatar/${hash}?s=200`;
-});
-
-// grab first name and add as virtual field
-userSchema.virtual("firstName").get(function() {
-  return this.fullName.split(" ")[0];
-});
-
-// grab last name and add as virtual field
-userSchema.virtual("lastName").get(function() {
-  const names = this.fullName.split(" ");
-  return names[names.length - 1];
 });
 
 // plugins

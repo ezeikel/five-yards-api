@@ -80,8 +80,8 @@ module.exports.typeDefs = gql`
 
   type User {
     id: ID!
-    fullName: String!
-    username: String!
+    firstName: String!
+    lastName: String!
     email: String!
     password: String!
     resetToken: String
@@ -127,8 +127,8 @@ module.exports.typeDefs = gql`
     ): Item!
     signup(
       email: String!
-      fullName: String!
-      username: String!
+      firstName: String!
+      lastName: String!
       password: String!
     ): User!
     signin(email: String!, password: String!): User!
@@ -316,7 +316,7 @@ module.exports.resolvers = {
       }
     },
 
-    signup: async (_, { email, fullName, username, password }, context) => {
+    signup: async (_, { firstName, lastName, email, password }, context) => {
       email = email.toLowerCase();
 
       const exists = await User.findOne({ email });
@@ -331,9 +331,9 @@ module.exports.resolvers = {
 
       // save new user to the db with default USER permission
       const user = await User({
+        firstName,
+        lastName,
         email,
-        fullName,
-        username,
         password: hashedPassword,
         permissions: "USER",
         resetToken: null,
@@ -354,9 +354,9 @@ module.exports.resolvers = {
 
       return {
         id,
+        firstName,
+        lastName,
         email,
-        fullName,
-        username,
         cart,
         permissions,
       };
@@ -391,13 +391,13 @@ module.exports.resolvers = {
       });
 
       // return relevant user properties
-      const { id, fullName, username, cart, permissions } = user;
+      const { id, firstName, lastName, cart, permissions } = user;
 
       return {
         id,
+        firstName,
+        lastName,
         email,
-        fullName,
-        username,
         cart,
         permissions,
       };
