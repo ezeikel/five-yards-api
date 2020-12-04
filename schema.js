@@ -133,6 +133,11 @@ module.exports.typeDefs = gql`
     ): User!
     signin(email: String!, password: String!): User!
     signout: SuccessMessage
+    changePassword(
+      oldPassword: String!
+      newPassword: String!
+      passwordHint: String
+    ): SuccessMessage
     requestReset(email: String!): SuccessMessage
     resetPassword(
       resetToken: String!
@@ -406,6 +411,50 @@ module.exports.resolvers = {
     signout: (_, args, context) => {
       context.res.clearCookie("token");
       return { message: "Goodbye!" };
+    },
+
+    // TODO: test to make sure this mutation works!
+    changePassword: async (
+      _,
+      { oldPassword, newPassword, passwordHint },
+      context,
+    ) => {
+      if (!context.req.userId) {
+        return null;
+      }
+
+      const user = await User.findOne({ _id: context.req.userId });
+
+      // TODO: refactor this to a function
+      // check if their password is correct
+      const valid = await bcrypt.compare(oldPassword, user.password);
+
+      if (!valid) {
+        throw new Error(
+          "password: Hmm, that password doesn't match the one we have on record. Try again.",
+        );
+      }
+
+      // TODO: refactor this to a function
+      // hash plaintext password with given number of saltRounds before storing in db
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+      try {
+        // TODO: add passwordHint to db
+        console.log({ passwordHint });
+        await User.updateOne(
+          { id: user.email },
+          {
+            $set: {
+              password: hashedPassword,
+            },
+          },
+        );
+
+        return { message: "Password changed successfully." };
+      } catch (error) {
+        console.error(error);
+      }
     },
 
     requestReset: async (_, args) => {
