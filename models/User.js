@@ -7,57 +7,54 @@ const mongodbErrorHandler = require("mongoose-mongodb-errors");
 const passportLocalMongoose = require("passport-local-mongoose");
 
 // document structure
-const userSchema = new Schema({
-  firstName: {
-    type: String,
-    required: "Please supply a last name",
-    trim: true,
-    lowercase: true,
-  },
-  lastName: {
-    type: String,
-    required: "Please supply a first name",
-    trim: true,
-    lowercase: true,
-  },
-  email: {
-    type: String,
-    unique: true,
-    lowercase: true,
-    trim: true,
-    validate: [validator.isEmail, "Invalid Email Address"],
-    required: "Please supply an email address",
-  },
-  password: {
-    type: String,
-    minlength: 6,
-  },
-  resetToken: String,
-  resetTokenExpiry: String,
-  cart: [
-    {
-      type: mongoose.Schema.ObjectId,
-      ref: "CartItem",
+const userSchema = new Schema(
+  {
+    firstName: {
+      type: String,
+      required: "Please supply a last name",
+      trim: true,
+      lowercase: true,
     },
-  ],
-  hasBusiness: {
-    type: Boolean,
-    default: false,
+    lastName: {
+      type: String,
+      required: "Please supply a first name",
+      trim: true,
+      lowercase: true,
+    },
+    email: {
+      type: String,
+      unique: true,
+      lowercase: true,
+      trim: true,
+      validate: [validator.isEmail, "Invalid Email Address"],
+      required: "Please supply an email address",
+    },
+    password: {
+      type: String,
+      minlength: 6,
+    },
+    resetToken: String,
+    resetTokenExpiry: String,
+    cart: [
+      {
+        type: mongoose.Schema.ObjectId,
+        ref: "CartItem",
+      },
+    ],
+    hasBusiness: {
+      type: Boolean,
+      default: false,
+    },
+    requestedDeletion: {
+      type: Boolean,
+      default: false,
+    },
+    permissions: [String],
   },
-  requestedDeletion: {
-    type: Boolean,
-    default: false,
+  {
+    timestamps: true,
   },
-  permissions: [String],
-  createdAt: {
-    type: Date,
-    default: Date.now,
-  },
-  updatedAt: {
-    type: Date,
-    default: Date.now,
-  },
-});
+);
 
 // grab gravatar image based on email addresss
 userSchema.virtual("gravatar").get(function () {

@@ -443,7 +443,7 @@ module.exports.resolvers = {
         // TODO: add passwordHint to db
         console.log({ passwordHint });
         await User.updateOne(
-          { id: user.email },
+          { _id: user._id },
           {
             $set: {
               password: hashedPassword,
