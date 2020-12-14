@@ -7,21 +7,23 @@ require("dotenv").config({ path: ".env" });
 // Connect to the Database and handle any bad connections
 mongoose.connect(process.env.DATABASE_ENDPOINT, { useNewUrlParser: true });
 mongoose.Promise = global.Promise; // Tell Mongoose to use ES6 promises
-mongoose.connection.on("error", err => {
+mongoose.connection.on("error", (err) => {
   console.error(`🙅 🚫 🙅 🚫 🙅 🚫 🙅 🚫 → ${err.message}`);
 });
 
 // Load mongodb collections on start up
 require("./models/User");
+require("./models/Measurements");
+
 require("./models/Item");
-require("./models/CartItem");
+require("./models/BagItem");
 require("./models/Order");
 require("./models/OrderItem");
 //require('./models/Shop');
 //require('./models/Review');
 
 // scrambles a connection string, showing only relevant info
-const scramble = connectionString =>
+const scramble = (connectionString) =>
   connectionString.replace(/:\/\/.*?\//, "://***/");
 
 // Start app & notify console of server boot and current settings

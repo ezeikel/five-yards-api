@@ -9,7 +9,7 @@ const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY); // TODO: move b
 const { transport, makeNiceEmail } = require("./mail");
 const User = mongoose.model("User");
 const Item = mongoose.model("Item");
-const CartItem = mongoose.model("CartItem");
+const BagItem = mongoose.model("BagItem");
 const Order = mongoose.model("Order");
 const OrderItem = mongoose.model("OrderItem");
 const rp = require("request-promise");
@@ -40,6 +40,12 @@ module.exports.typeDefs = gql`
     PERMISSIONUPDATE
   }
 
+  enum Gender {
+    MALE
+    FEMALE
+    NOTSPECIFIED
+  }
+
   type Query {
     currentUser: User
     users: [User]!
@@ -57,6 +63,16 @@ module.exports.typeDefs = gql`
     url: String
   }
 
+  type Measurements {
+    neck: Float
+    waist: Float
+    hips: Float
+    bust: Float
+    armLength: Float
+    createdAt: Date!
+    updatedAt: Date!
+  }
+
   type Item {
     id: ID!
     title: String!
@@ -64,12 +80,12 @@ module.exports.typeDefs = gql`
     image: String
     largeImage: String
     price: Int!
+    user: User!
     createdAt: Date!
     updatedAt: Date!
-    user: User!
   }
 
-  type CartItem {
+  type BagItem {
     id: ID!
     quantity: Int!
     item: Item
@@ -82,12 +98,15 @@ module.exports.typeDefs = gql`
     id: ID!
     firstName: String!
     lastName: String!
+    gender: String!
     email: String!
+    phoneNumber: String
     password: String!
+    gravatar: String
+    measurements: Measurements
     resetToken: String
     resetTokenExpiry: String
-    cart: [CartItem!]
-    hasBusiness: Boolean!
+    bag: [BagItem!]
     requestedDeletion: Boolean!
     permissions: [Permission]!
     createdAt: Date!
@@ -99,9 +118,9 @@ module.exports.typeDefs = gql`
     items: [OrderItem!]
     total: Int!
     user: User!
+    charge: String!
     createdAt: Date!
     updatedAt: Date!
-    charge: String!
   }
 
   type OrderItem {
@@ -111,10 +130,10 @@ module.exports.typeDefs = gql`
     image: String
     largeImage: String
     price: Int!
-    createdAt: Date!
-    updatedAt: Date!
     quantity: Int!
     user: User!
+    createdAt: Date!
+    updatedAt: Date!
   }
 
   type Mutation {
@@ -148,8 +167,8 @@ module.exports.typeDefs = gql`
     cancelDeleteUser(id: ID!): User!
     deleteItem(id: ID!): Item
     updateItem(id: ID!, title: String, description: String, price: Int): Item!
-    addToCart(id: ID!): User!
-    removeFromCart(id: ID!): CartItem
+    addToBag(id: ID!): User!
+    removeFromBag(id: ID!): BagItem
     createOrder(token: String!): Order!
     requestLaunchNotification(
       firstName: String!
@@ -338,9 +357,10 @@ module.exports.resolvers = {
       const user = await User({
         firstName,
         lastName,
+        gender: "NOTSPECIFIED", // TODO: set this to default value in mongoose or graphql schema
         email,
         password: hashedPassword,
-        permissions: "USER",
+        permissions: "USER", // TODO: set this to default value in mongoose or graphql schema
         resetToken: null,
         resetTokenExpiry: null,
       }).save();
@@ -355,14 +375,14 @@ module.exports.resolvers = {
       });
 
       // return relevant user properties
-      const { id, permissions, cart } = user;
+      const { id, permissions, bag } = user;
 
       return {
         id,
         firstName,
         lastName,
         email,
-        cart,
+        bag,
         permissions,
       };
     },
@@ -396,14 +416,14 @@ module.exports.resolvers = {
       });
 
       // return relevant user properties
-      const { id, firstName, lastName, cart, permissions } = user;
+      const { id, firstName, lastName, bag, permissions } = user;
 
       return {
         id,
         firstName,
         lastName,
         email,
-        cart,
+        bag,
         permissions,
       };
     },
@@ -604,28 +624,28 @@ module.exports.resolvers = {
         },
       );
     },
-    addToCart: async (_, { id }, context) => {
+    addToBag: async (_, { id }, context) => {
       // 1. make sure they are signed in
       const { userId } = context.req;
 
       if (!userId) {
         throw new Error("You must be signed in!");
       }
-      // 2. query the users current cart
-      const existingCartItem = await CartItem.findOne({
+      // 2. query the users current bag
+      const existingBagItem = await BagItem.findOne({
         user: userId,
         item: id,
       });
 
-      // 3. check if that item is already in their cart and if it is increment by 1
-      if (existingCartItem) {
-        await CartItem.findOneAndUpdate(
+      // 3. check if that item is already in their bag and if it is increment by 1
+      if (existingBagItem) {
+        await BagItem.findOneAndUpdate(
           {
-            _id: existingCartItem.id,
+            _id: existingBagItem.id,
           },
           {
             $set: {
-              quantity: existingCartItem.quantity + 1,
+              quantity: existingBagItem.quantity + 1,
             },
           },
         );
@@ -634,17 +654,17 @@ module.exports.resolvers = {
           _id: userId,
         });
       }
-      // 4. if its not, create a fresh CartItem for that user
-      const cartItem = await CartItem({ user: userId, item: id }).save();
+      // 4. if its not, create a fresh BagItem for that user
+      const bagItem = await BagItem({ user: userId, item: id }).save();
 
-      // 5. push cartItem id to User cart array
+      // 5. push bagItem id to User bag array
       return User.findOneAndUpdate(
         {
           _id: userId,
         },
         {
           $push: {
-            cart: cartItem._id,
+            bag: bagItem._id,
           },
         },
         {
@@ -652,35 +672,35 @@ module.exports.resolvers = {
         },
       );
     },
-    removeFromCart: async (_, { id }, context) => {
+    removeFromBag: async (_, { id }, context) => {
       const { userId } = context.req;
-      // 1. find the cart item
-      const cartItem = await CartItem.findOne({
+      // 1. find the bag item
+      const bagItem = await BagItem.findOne({
         _id: id,
       });
 
       // 1.5 make sure we found an item
-      if (!cartItem) throw new Error("No CartItem Found!");
-      // 2. make sure they own that cart item
-      if (cartItem.user._id.toString() !== userId) {
+      if (!bagItem) throw new Error("No BagItem Found!");
+      // 2. make sure they own that bag item
+      if (bagItem.user._id.toString() !== userId) {
         throw new Error("Cheating huh?!");
       }
-      // 3. delete that cart item
-      await CartItem.remove({
+      // 3. delete that bag item
+      await BagItem.remove({
         _id: id,
       });
 
-      // remove from user.cart array
+      // remove from user.bag array
       await User.findOneAndUpdate(
         {
           _id: userId,
         },
         {
-          $pull: { cart: id },
+          $pull: { bag: id },
         },
       );
 
-      return cartItem;
+      return bagItem;
     },
     createOrder: async (_, { token }, context) => {
       // 1. query current user and make sure they are signed in
@@ -694,8 +714,8 @@ module.exports.resolvers = {
       });
 
       // 2. recalculate the total for the price
-      const amount = user.cart.reduce(
-        (tally, cartItem) => tally + cartItem.item.price * cartItem.quantity,
+      const amount = user.bag.reduce(
+        (tally, bagItem) => tally + bagItem.item.price * bagItem.quantity,
         0,
       );
       // 3. create the stripe charge (turn token into $$$)
@@ -705,13 +725,13 @@ module.exports.resolvers = {
         source: token,
       });
 
-      // 4. convert the CartItems to OrderItems
+      // 4. convert the BagItems to OrderItems
       // toObject() removes pulls out data in mongoose _doc property - https://github.com/Automattic/mongoose/issues/516
-      const orderItems = user.toObject().cart.map((cartItem) => {
+      const orderItems = user.toObject().bag.map((bagItem) => {
         const orderItem = {
-          ...cartItem.item,
-          quantity: cartItem.quantity,
-          user: cartItem.user,
+          ...bagItem.item,
+          quantity: bagItem.quantity,
+          user: bagItem.user,
         };
         delete orderItem._id;
         return orderItem;
@@ -734,22 +754,22 @@ module.exports.resolvers = {
         _id,
       });
 
-      // 6. clean up - clear the users cart, delete cartItems
-      const cartItemIds = user.cart.map((cartItem) => cartItem.id);
+      // 6. clean up - clear the users bag, delete bagItems
+      const bagItemIds = user.bag.map((bagItem) => bagItem.id);
 
-      await CartItem.deleteMany({
-        _id: { $in: cartItemIds },
+      await BagItem.deleteMany({
+        _id: { $in: bagItemIds },
       });
 
-      // remove from user.cart array
+      // remove from user.bag array
       await User.findOneAndUpdate(
         {
           _id: userId,
         },
         {
           $pull: {
-            cart: {
-              $in: cartItemIds,
+            bag: {
+              $in: bagItemIds,
             },
           },
         },

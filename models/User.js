@@ -21,6 +21,7 @@ const userSchema = new Schema(
       trim: true,
       lowercase: true,
     },
+    gender: String,
     email: {
       type: String,
       unique: true,
@@ -29,26 +30,25 @@ const userSchema = new Schema(
       validate: [validator.isEmail, "Invalid Email Address"],
       required: "Please supply an email address",
     },
+    phoneNumber: {
+      type: Number,
+    },
+    measurements: {
+      type: mongoose.Schema.ObjectId,
+      ref: "Measurements",
+    },
     password: {
       type: String,
       minlength: 6,
     },
     resetToken: String,
     resetTokenExpiry: String,
-    cart: [
+    bag: [
       {
         type: mongoose.Schema.ObjectId,
-        ref: "CartItem",
+        ref: "BagItem",
       },
     ],
-    hasBusiness: {
-      type: Boolean,
-      default: false,
-    },
-    requestedDeletion: {
-      type: Boolean,
-      default: false,
-    },
     permissions: [String],
   },
   {
@@ -67,7 +67,7 @@ userSchema.plugin(passportLocalMongoose, { usernameField: "email" });
 userSchema.plugin(mongodbErrorHandler);
 
 function autopopulate(next) {
-  this.populate("cart");
+  this.populate("bag");
   next();
 }
 

@@ -3,28 +3,25 @@ const { Schema } = mongoose;
 mongoose.Promise = global.Promise;
 
 // document structure
-const orderSchema = new Schema({
-  charge: String,
-  total: Number,
-  items: [
-    {
+const orderSchema = new Schema(
+  {
+    charge: String,
+    total: Number,
+    items: [
+      {
+        type: mongoose.Schema.ObjectId,
+        ref: "OrderItem",
+      },
+    ],
+    user: {
       type: mongoose.Schema.ObjectId,
-      ref: "OrderItem",
+      ref: "User",
     },
-  ],
-  user: {
-    type: mongoose.Schema.ObjectId,
-    ref: "User",
   },
-  createdAt: {
-    type: Date,
-    default: Date.now,
+  {
+    timestamps: true,
   },
-  updatedAt: {
-    type: Date,
-    default: Date.now,
-  },
-});
+);
 
 function autopopulate(next) {
   this.populate("items");
