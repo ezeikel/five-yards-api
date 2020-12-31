@@ -13,13 +13,11 @@ const userSchema = new Schema(
       type: String,
       required: "Please supply a last name",
       trim: true,
-      lowercase: true,
     },
     lastName: {
       type: String,
       required: "Please supply a first name",
       trim: true,
-      lowercase: true,
     },
     gender: String,
     email: {
@@ -70,6 +68,18 @@ function autopopulate(next) {
   this.populate("bag");
   next();
 }
+
+function capitalizeFirstAndLastName(next) {
+  this.firstName =
+    this.firstName.charAt(0).toUpperCase() +
+    this.firstName.slice(1).toLowerCase();
+  this.lastName =
+    this.lastName.charAt(0).toUpperCase() +
+    this.lastName.slice(1).toLowerCase();
+  next();
+}
+
+userSchema.pre("save", capitalizeFirstAndLastName);
 
 userSchema.pre("find", autopopulate);
 userSchema.pre("findOne", autopopulate);
