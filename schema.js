@@ -46,6 +46,14 @@ module.exports.typeDefs = gql`
     NOTSPECIFIED
   }
 
+  input MeasurementsInput {
+    neck: Float
+    waist: Float
+    hips: Float
+    bust: Float
+    armLength: Float
+  }
+
   type Query {
     currentUser: User
     users: [User]!
@@ -162,6 +170,15 @@ module.exports.typeDefs = gql`
       resetToken: String!
       password: String!
       confirmPassword: String!
+    ): User!
+    updateUser(
+      id: ID!
+      firstName: String
+      lastName: String
+      gender: Gender
+      email: String
+      phoneNumber: String
+      measurements: MeasurementsInput
     ): User!
     deleteUser(id: ID!): User!
     cancelDeleteUser(id: ID!): User!
@@ -564,6 +581,21 @@ module.exports.resolvers = {
       return updatedUser;
     },
 
+    updateUser: (_, args) => {
+      console.log({ args });
+
+      return;
+
+      return User.findOneAndUpdate(
+        { _id: args.id },
+        {
+          $set: {
+            ...updates,
+          },
+        },
+      );
+    },
+
     deleteUser: (_, { id }) => {
       return User.findOneAndUpdate(
         { _id: id },
@@ -624,6 +656,7 @@ module.exports.resolvers = {
         },
       );
     },
+
     addToBag: async (_, { id }, context) => {
       // 1. make sure they are signed in
       const { userId } = context.req;
