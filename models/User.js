@@ -6,6 +6,12 @@ const validator = require("validator");
 const mongodbErrorHandler = require("mongoose-mongodb-errors");
 const passportLocalMongoose = require("passport-local-mongoose");
 
+// TODO: move to utils folder
+const capitalize = (val) => {
+  if (typeof val !== "string") val = "";
+  return val.charAt(0).toUpperCase() + val.substring(1);
+};
+
 // document structure
 const userSchema = new Schema(
   {
@@ -13,13 +19,19 @@ const userSchema = new Schema(
       type: String,
       required: "Please supply a last name",
       trim: true,
+      set: capitalize,
     },
     lastName: {
       type: String,
       required: "Please supply a first name",
       trim: true,
+      set: capitalize,
     },
-    gender: String,
+    gender: {
+      type: String,
+      enum: ["MALE", "FEMALE", "NOTSPECIFIED"],
+      default: "NOTSPECIFIED",
+    },
     email: {
       type: String,
       unique: true,
@@ -30,6 +42,7 @@ const userSchema = new Schema(
     },
     phoneNumber: {
       type: Number,
+      trim: true,
     },
     measurements: {
       type: mongoose.Schema.ObjectId,
@@ -47,7 +60,18 @@ const userSchema = new Schema(
         ref: "BagItem",
       },
     ],
-    permissions: [String],
+    permissions: {
+      type: [String],
+      enum: [
+        "ADMIN",
+        "USER",
+        "ITEMCREATE",
+        "ITEMUPDATE",
+        "ITEMDELETE",
+        "PERMISSIONUPDATE",
+      ],
+      default: ["USER"],
+    },
   },
   {
     timestamps: true,
@@ -68,18 +92,6 @@ function autopopulate(next) {
   this.populate("bag");
   next();
 }
-
-function capitalizeFirstAndLastName(next) {
-  this.firstName =
-    this.firstName.charAt(0).toUpperCase() +
-    this.firstName.slice(1).toLowerCase();
-  this.lastName =
-    this.lastName.charAt(0).toUpperCase() +
-    this.lastName.slice(1).toLowerCase();
-  next();
-}
-
-userSchema.pre("save", capitalizeFirstAndLastName);
 
 userSchema.pre("find", autopopulate);
 userSchema.pre("findOne", autopopulate);

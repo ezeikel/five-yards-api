@@ -374,10 +374,8 @@ module.exports.resolvers = {
       const user = await User({
         firstName,
         lastName,
-        gender: "NOTSPECIFIED", // TODO: set this to default value in mongoose or graphql schema
         email,
         password: hashedPassword,
-        permissions: "USER", // TODO: set this to default value in mongoose or graphql schema
         resetToken: null,
         resetTokenExpiry: null,
       }).save();
@@ -581,16 +579,14 @@ module.exports.resolvers = {
       return updatedUser;
     },
 
-    updateUser: (_, args) => {
-      console.log({ args });
-
-      return;
+    updateUser: (_, { id, ...userUpdates }) => {
+      console.log({ userUpdates });
 
       return User.findOneAndUpdate(
-        { _id: args.id },
+        { _id: id },
         {
           $set: {
-            ...updates,
+            ...userUpdates,
           },
         },
       );
