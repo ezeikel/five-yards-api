@@ -29,7 +29,7 @@ const userSchema = new Schema(
     },
     gender: {
       type: String,
-      enum: ["MALE", "FEMALE", "NOTSPECIFIED"],
+      enum: ["MALE", "FEMALE", "NONBINARY", "NOTSPECIFIED"],
       default: "NOTSPECIFIED",
     },
     email: {
@@ -41,7 +41,7 @@ const userSchema = new Schema(
       required: "Please supply an email address",
     },
     phoneNumber: {
-      type: Number,
+      type: String,
       trim: true,
     },
     measurements: {

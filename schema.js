@@ -43,6 +43,7 @@ module.exports.typeDefs = gql`
   enum Gender {
     MALE
     FEMALE
+    NONBINARY
     NOTSPECIFIED
   }
 
@@ -106,7 +107,7 @@ module.exports.typeDefs = gql`
     id: ID!
     firstName: String!
     lastName: String!
-    gender: String!
+    gender: Gender!
     email: String!
     phoneNumber: String
     password: String!
