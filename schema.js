@@ -266,7 +266,11 @@ module.exports.resolvers = {
   },
   Mutation: {
     onboardStripeUser: async (_, data, { req }) => {
+      // https://stripe.com/docs/connect/collect-then-transfer-guide
+
       try {
+        // TODO: use data collected on front end to prepopulate some of the user information
+        // when creating the account
         const account = await stripe.accounts.create({ type: "express" });
         req.session.accountID = account.id;
 
@@ -274,13 +278,8 @@ module.exports.resolvers = {
         const accountLinkURL = await generateAccountLink(account.id, origin);
 
         return { url: accountLinkURL };
-
-        // res.send({ url: accountLinkURL });
       } catch (err) {
         throw new Error(err.message);
-        // res.status(500).send({
-        //   error: err.message,
-        // });
       }
     },
     onboardStripeRefresh: async (_, data, { req }) => {
