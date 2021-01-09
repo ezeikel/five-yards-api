@@ -68,6 +68,11 @@ module.exports.typeDefs = gql`
     message: String
   }
 
+  type StripeAccount {
+    id: String!
+    type: String!
+  }
+
   type StripeAccountLink {
     url: String
   }
@@ -194,8 +199,19 @@ module.exports.typeDefs = gql`
     ): SuccessMessage
     onboardStripeUser: StripeAccountLink!
     onboardStripeRefresh: StripeAccountLink!
+    createStripeAccount(
+      url: String!
+      name: String!
+      phone: String!
+      tax_id: String!
+      line1: String!
+      city: String!
+      postal_code: String!
+    ): StripeAccount!
   }
 `;
+
+const now = () => Math.round(new Date().getTime() / 1000);
 
 // this is how "get" the data we need
 module.exports.resolvers = {
@@ -302,6 +318,77 @@ module.exports.resolvers = {
         // res.status(500).send({
         //   error: err.message,
         // });
+      }
+    },
+    createStripeAccount: async (
+      _,
+      {
+        // external_account,
+        url,
+        name,
+        phone,
+        tax_id,
+        line1,
+        city,
+        postal_code,
+      },
+      { req },
+    ) => {
+      try {
+        // TODO: do this on front end?
+        const token = await stripe.tokens.create({
+          bank_account: {
+            country: "GB",
+            currency: "gbp",
+            account_holder_name: "Jenny Rosen",
+            account_holder_type: "company",
+            routing_number: "108800",
+            account_number: "00012345",
+          },
+        });
+
+        console.log({ token });
+
+        const account = await stripe.accounts.create({
+          country: "GB",
+          type: "custom",
+          capabilities: {
+            card_payments: {
+              requested: true,
+            },
+            transfers: {
+              requested: true,
+            },
+          },
+          business_type: "company",
+          external_account: token.id,
+          tos_acceptance: {
+            date: now(),
+            ip: req.ip,
+          },
+          business_profile: {
+            mcc: 7623, // TODO: harcoded for now - https://docs.checkout.com/resources/codes/merchant-category-codes
+            url,
+          },
+          company: {
+            name,
+            phone,
+            tax_id,
+            address: {
+              line1,
+              city,
+              postal_code,
+            },
+          },
+        });
+
+        // TODO: fix requirements for companu directors, owners, executives and representatives
+        console.log(JSON.stringify(account, null, 2));
+
+        // TODO: store account.id in db and use in future requests to Stripe
+        return account;
+      } catch (error) {
+        console.error({ error });
       }
     },
     createItem: async (
