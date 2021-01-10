@@ -114,7 +114,7 @@ module.exports.typeDefs = gql`
     lastName: String!
     gender: Gender!
     email: String!
-    phoneNumber: String
+    phone: String
     password: String!
     gravatar: String
     measurements: Measurements
@@ -183,7 +183,7 @@ module.exports.typeDefs = gql`
       lastName: String
       gender: Gender
       email: String
-      phoneNumber: String
+      phone: String
       measurements: MeasurementsInput
     ): User!
     deleteUser(id: ID!): User!
@@ -336,6 +336,9 @@ module.exports.resolvers = {
     ) => {
       try {
         // TODO: do this on front end?
+        // probably, otherwise its two requests at the same time on FE
+        // sending bank and company details. UNLESS include bank details in company payload and
+        // just make the api call for bank token :)
         const token = await stripe.tokens.create({
           bank_account: {
             country: "GB",

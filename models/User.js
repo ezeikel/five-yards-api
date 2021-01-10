@@ -40,7 +40,7 @@ const userSchema = new Schema(
       validate: [validator.isEmail, "Invalid Email Address"],
       required: "Please supply an email address",
     },
-    phoneNumber: {
+    phone: {
       type: String,
       trim: true,
     },
