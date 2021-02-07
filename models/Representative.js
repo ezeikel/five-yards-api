@@ -1,7 +1,6 @@
 const mongoose = require("mongoose");
 const { Schema } = mongoose;
 mongoose.Promise = global.Promise;
-const validator = require("validator");
 
 // TODO: move to utils folder
 const capitalize = (val) => {
@@ -12,29 +11,21 @@ const capitalize = (val) => {
 // document structure
 const representativechema = new Schema(
   {
-    name: {
-      type: String,
-      required: "Please supply a name",
-      trim: true,
-      set: capitalize,
-    },
-    dob: String,
-    address: String,
-    taxInformation: String,
-    businessTitle: String,
-    email: String,
-    phone: String,
-
-    lastName: {
+    firstName: {
       type: String,
       required: "Please supply a first name",
       trim: true,
       set: capitalize,
     },
-    gender: {
+    lastName: {
       type: String,
-      enum: ["MALE", "FEMALE", "NOTSPECIFIED"],
-      default: "NOTSPECIFIED",
+      required: "Please supply a last name",
+      trim: true,
+      set: capitalize,
+    },
+    dob: {
+      type: String,
+      required: "Please supply a DOB",
     },
     email: {
       type: String,
@@ -44,37 +35,25 @@ const representativechema = new Schema(
       validate: [validator.isEmail, "Invalid Email Address"],
       required: "Please supply an email address",
     },
-    phoneNumber: {
-      type: Number,
+    phone: {
+      type: String,
       trim: true,
     },
-    measurements: {
-      type: mongoose.Schema.ObjectId,
-      ref: "Measurements",
-    },
-    password: {
+    address: {
       type: String,
-      minlength: 6,
+      required: "Please supply an address",
     },
-    resetToken: String,
-    resetTokenExpiry: String,
-    bag: [
-      {
-        type: mongoose.Schema.ObjectId,
-        ref: "BagItem",
-      },
-    ],
-    permissions: {
-      type: [String],
-      enum: [
-        "ADMIN",
-        "USER",
-        "ITEMCREATE",
-        "ITEMUPDATE",
-        "ITEMDELETE",
-        "PERMISSIONUPDATE",
-      ],
-      default: ["USER"],
+    taxInformation: String,
+    business: {
+      type: mongoose.Schema.ObjectId,
+      ref: "Business",
+    },
+    businessTitle: String,
+    // relationship: {},
+    stripePersonId: {
+      type: String,
+      unique: true,
+      required: "Please provide Stripe Person ID",
     },
   },
   {
@@ -83,4 +62,4 @@ const representativechema = new Schema(
 );
 
 // compile model and export
-module.exports = mongoose.model("User", userSchema);
+module.exports = mongoose.model("Representative", representativechema);

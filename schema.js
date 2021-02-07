@@ -43,6 +43,7 @@ module.exports.typeDefs = gql`
   enum Gender {
     MALE
     FEMALE
+    NONBINARY
     NOTSPECIFIED
   }
 
@@ -65,6 +66,11 @@ module.exports.typeDefs = gql`
 
   type SuccessMessage {
     message: String
+  }
+
+  type StripeAccount {
+    id: String!
+    type: String!
   }
 
   type StripeAccountLink {
@@ -106,9 +112,9 @@ module.exports.typeDefs = gql`
     id: ID!
     firstName: String!
     lastName: String!
-    gender: String!
+    gender: Gender!
     email: String!
-    phoneNumber: String
+    phone: String
     password: String!
     gravatar: String
     measurements: Measurements
@@ -177,7 +183,7 @@ module.exports.typeDefs = gql`
       lastName: String
       gender: Gender
       email: String
-      phoneNumber: String
+      phone: String
       measurements: MeasurementsInput
     ): User!
     deleteUser(id: ID!): User!
@@ -193,8 +199,19 @@ module.exports.typeDefs = gql`
     ): SuccessMessage
     onboardStripeUser: StripeAccountLink!
     onboardStripeRefresh: StripeAccountLink!
+    createStripeAccount(
+      url: String!
+      name: String!
+      phone: String!
+      tax_id: String!
+      line1: String!
+      city: String!
+      postal_code: String!
+    ): StripeAccount!
   }
 `;
+
+const now = () => Math.round(new Date().getTime() / 1000);
 
 // this is how "get" the data we need
 module.exports.resolvers = {
@@ -265,7 +282,11 @@ module.exports.resolvers = {
   },
   Mutation: {
     onboardStripeUser: async (_, data, { req }) => {
+      // https://stripe.com/docs/connect/collect-then-transfer-guide
+
       try {
+        // TODO: use data collected on front end to prepopulate some of the user information
+        // when creating the account
         const account = await stripe.accounts.create({ type: "express" });
         req.session.accountID = account.id;
 
@@ -273,13 +294,8 @@ module.exports.resolvers = {
         const accountLinkURL = await generateAccountLink(account.id, origin);
 
         return { url: accountLinkURL };
-
-        // res.send({ url: accountLinkURL });
       } catch (err) {
         throw new Error(err.message);
-        // res.status(500).send({
-        //   error: err.message,
-        // });
       }
     },
     onboardStripeRefresh: async (_, data, { req }) => {
@@ -302,6 +318,80 @@ module.exports.resolvers = {
         // res.status(500).send({
         //   error: err.message,
         // });
+      }
+    },
+    createStripeAccount: async (
+      _,
+      {
+        // external_account,
+        url,
+        name,
+        phone,
+        tax_id,
+        line1,
+        city,
+        postal_code,
+      },
+      { req },
+    ) => {
+      try {
+        // TODO: do this on front end?
+        // probably, otherwise its two requests at the same time on FE
+        // sending bank and company details. UNLESS include bank details in company payload and
+        // just make the api call for bank token :)
+        const token = await stripe.tokens.create({
+          bank_account: {
+            country: "GB",
+            currency: "gbp",
+            account_holder_name: "Jenny Rosen",
+            account_holder_type: "company",
+            routing_number: "108800",
+            account_number: "00012345",
+          },
+        });
+
+        console.log({ token });
+
+        const account = await stripe.accounts.create({
+          country: "GB",
+          type: "custom",
+          capabilities: {
+            card_payments: {
+              requested: true,
+            },
+            transfers: {
+              requested: true,
+            },
+          },
+          business_type: "company",
+          external_account: token.id,
+          tos_acceptance: {
+            date: now(),
+            ip: req.ip,
+          },
+          business_profile: {
+            mcc: 7623, // TODO: harcoded for now - https://docs.checkout.com/resources/codes/merchant-category-codes
+            url,
+          },
+          company: {
+            name,
+            phone,
+            tax_id,
+            address: {
+              line1,
+              city,
+              postal_code,
+            },
+          },
+        });
+
+        // TODO: fix requirements for companu directors, owners, executives and representatives
+        console.log(JSON.stringify(account, null, 2));
+
+        // TODO: store account.id in db and use in future requests to Stripe
+        return account;
+      } catch (error) {
+        console.error({ error });
       }
     },
     createItem: async (
