@@ -11,6 +11,9 @@ const businessSchema = new Schema(
       enum: ["INDIVIDUAL", "COMPANY"],
       default: "INDIVIDUAL",
     },
+    merchantCategoryCode: String,
+    url: String,
+    termsOfService: String, // TODO: tos_acceptance.date, tos_acceptance.ip
     stripeAccountId: {
       type: String,
       unique: true,
@@ -24,8 +27,24 @@ const businessSchema = new Schema(
     ],
     name: String,
     phone: String,
-    country: String,
-    address: String,
+    location: {
+      type: {
+        type: String,
+        default: "Point",
+      },
+      coordinates: [
+        {
+          type: Number,
+          required: "You must supply coordinates",
+        },
+      ],
+      address: {
+        type: String,
+        required: "You must supply an address",
+        trim: true,
+      },
+    },
+    taxId: String,
 
     // based on ui designs/forms
     password: {

@@ -39,9 +39,22 @@ const representativechema = new Schema(
       type: String,
       trim: true,
     },
-    address: {
-      type: String,
-      required: "Please supply an address",
+    location: {
+      type: {
+        type: String,
+        default: "Point",
+      },
+      coordinates: [
+        {
+          type: Number,
+          required: "You must supply coordinates",
+        },
+      ],
+      address: {
+        type: String,
+        required: "You must supply an address",
+        trim: true,
+      },
     },
     taxInformation: String,
     business: {
@@ -49,6 +62,7 @@ const representativechema = new Schema(
       ref: "Business",
     },
     businessTitle: String,
+    owner: Boolean, // TODO: do we need to store % ownership aswell?
     // relationship: {},
     stripePersonId: {
       type: String,
