@@ -1,6 +1,4 @@
-const mongoose = require("mongoose");
-const { Schema } = mongoose;
-mongoose.Promise = global.Promise;
+import mongoose, { Schema, model } from "mongoose";
 
 // TODO: move to utils folder
 const capitalize = (val) => {
@@ -76,4 +74,4 @@ const representativechema = new Schema(
 );
 
 // compile model and export
-module.exports = mongoose.model("Representative", representativechema);
+export default model("Representative", representativechema);

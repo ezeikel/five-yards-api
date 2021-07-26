@@ -1,6 +1,6 @@
-const nodemailer = require("nodemailer");
+import nodemailer from "nodemailer";
 
-const transport = nodemailer.createTransport({
+export const transport = nodemailer.createTransport({
   host: process.env.MAIL_HOST,
   port: process.env.MAIL_PORT,
   auth: {
@@ -9,7 +9,7 @@ const transport = nodemailer.createTransport({
   },
 });
 
-const makeNiceEmail = text => `
+export const makeNiceEmail = (text: string): string => `
   <div className="email style="
     border: 1px solid black;
     padding: 20px;
@@ -22,6 +22,3 @@ const makeNiceEmail = text => `
     <p>😘, Ezeikel Pemberton</p>
   </div>
 `;
-
-exports.transport = transport;
-exports.makeNiceEmail = makeNiceEmail;

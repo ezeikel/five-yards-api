@@ -1,6 +1,4 @@
-const mongoose = require("mongoose");
-const { Schema } = mongoose;
-mongoose.Promise = global.Promise;
+import mongoose, { Schema, model } from "mongoose";
 
 // document structure
 const orderSchema = new Schema(
@@ -34,4 +32,4 @@ orderSchema.pre("findOne", autopopulate);
 orderSchema.pre("findOneAndUpdate", autopopulate);
 
 // compile model and export
-module.exports = mongoose.model("Order", orderSchema);
+export default model("Order", orderSchema);

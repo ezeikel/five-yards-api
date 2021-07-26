@@ -1,6 +1,4 @@
-const mongoose = require("mongoose");
-const { Schema } = mongoose;
-mongoose.Promise = global.Promise;
+import mongoose, { Schema, model } from "mongoose";
 
 // document structure
 const itemSchema = new Schema(
@@ -29,4 +27,4 @@ const itemSchema = new Schema(
 );
 
 // compile model and export
-module.exports = mongoose.model("Item", itemSchema);
+export default model("Item", itemSchema);

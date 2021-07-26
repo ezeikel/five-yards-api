@@ -1,19 +1,31 @@
-const mongoose = require("mongoose");
-const { Schema } = mongoose;
-mongoose.Promise = global.Promise;
-const md5 = require("md5");
-const validator = require("validator");
-const mongodbErrorHandler = require("mongoose-mongodb-errors");
-const passportLocalMongoose = require("passport-local-mongoose");
+import mongoose, { Schema, model } from "mongoose";
+import md5 from "md5";
+import validator from "validator";
+import mongodbErrorHandler from "mongoose-mongodb-errors";
+import passportLocalMongoose from "passport-local-mongoose";
+
+interface User {
+  firstName: string;
+  lastName: string;
+  gender: string;
+  email: string;
+  phone?: string;
+  measurements?: string;
+  password: string;
+  resetToken?: string;
+  resetTokenExpiry?: string;
+  bag?: string;
+  permission: [string];
+}
 
 // TODO: move to utils folder
-const capitalize = (val) => {
+const capitalize = (val: string) => {
   if (typeof val !== "string") val = "";
   return val.charAt(0).toUpperCase() + val.substring(1);
 };
 
 // document structure
-const userSchema = new Schema(
+const userSchema = new Schema<User>(
   {
     firstName: {
       type: String,
@@ -29,6 +41,7 @@ const userSchema = new Schema(
     },
     gender: {
       type: String,
+      required: "Please supply gender",
       enum: ["MALE", "FEMALE", "NONBINARY", "NOTSPECIFIED"],
       default: "NOTSPECIFIED",
     },
@@ -45,31 +58,25 @@ const userSchema = new Schema(
       trim: true,
     },
     measurements: {
-      type: mongoose.Schema.ObjectId,
+      type: mongoose.Types.ObjectId,
       ref: "Measurements",
     },
     password: {
       type: String,
+      required: "Please supply a password",
       minlength: 6,
     },
     resetToken: String,
     resetTokenExpiry: String,
     bag: [
       {
-        type: mongoose.Schema.ObjectId,
+        type: mongoose.Types.ObjectId,
         ref: "BagItem",
       },
     ],
     permissions: {
       type: [String],
-      enum: [
-        "ADMIN",
-        "USER",
-        "ITEMCREATE",
-        "ITEMUPDATE",
-        "ITEMDELETE",
-        "PERMISSIONUPDATE",
-      ],
+      enum: ["ADMIN", "USER", "ITEMCREATE", "ITEMUPDATE", "ITEMDELETE", "PERMISSIONUPDATE"],
       default: ["USER"],
     },
   },
@@ -98,4 +105,4 @@ userSchema.pre("findOne", autopopulate);
 userSchema.pre("findOneAndUpdate", autopopulate);
 
 // compile model and export
-module.exports = mongoose.model("User", userSchema);
+export default model<User>("User", userSchema);

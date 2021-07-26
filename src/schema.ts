@@ -1,20 +1,21 @@
-const { gql } = require("apollo-server-express");
-const { GraphQLScalarType } = require("graphql");
-const mongoose = require("mongoose");
-const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
-const { randomBytes } = require("crypto");
-const { promisify } = require("util");
-const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY); // TODO: move back to seperate file
-const { transport, makeNiceEmail } = require("./mail");
-const User = mongoose.model("User");
-const Item = mongoose.model("Item");
-const BagItem = mongoose.model("BagItem");
-const Order = mongoose.model("Order");
-const OrderItem = mongoose.model("OrderItem");
-const rp = require("request-promise");
+import { gql } from "apollo-server-express";
+import { GraphQLScalarType, Kind } from "graphql";
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+import { randomBytes } from "crypto";
+import { promisify } from "util";
+import stripe from "stripe";
+import { transport, makeNiceEmail } from "./mail";
+import User from "./models/User";
+import Item from "./models/Item";
+import BagItem from "./models/BagItem";
+import Order from "./models/Order";
+import OrderItem from "./models/OrderItem";
+import rp from "request-promise";
 
-function generateAccountLink(accountID, origin) {
+stripe(process.env.STRIPE_SECRET_KEY);
+
+function generateAccountLink(accountID: string) {
   return stripe.accountLinks
     .create({
       type: "account_onboarding",
@@ -22,11 +23,11 @@ function generateAccountLink(accountID, origin) {
       refresh_url: `${process.env.FRONTEND_URL}/onboard-user/refresh`,
       return_url: `${process.env.FRONTEND_URL}/onboard-user/success`,
     })
-    .then((link) => link.url);
+    .then((link: { url: string }) => link.url);
 }
 
 // defining "shape" of data
-module.exports.typeDefs = gql`
+export const typeDefs = gql`
   # The "Query" type is the root of all GraphQL queries.
 
   scalar Date
@@ -151,32 +152,13 @@ module.exports.typeDefs = gql`
   }
 
   type Mutation {
-    createItem(
-      title: String
-      description: String
-      price: Int
-      image: String
-      largeImage: String
-    ): Item!
-    signup(
-      email: String!
-      firstName: String!
-      lastName: String!
-      password: String!
-    ): User!
+    createItem(title: String, description: String, price: Int, image: String, largeImage: String): Item!
+    signup(email: String!, firstName: String!, lastName: String!, password: String!): User!
     signin(email: String!, password: String!): User!
     signout: SuccessMessage
-    changePassword(
-      oldPassword: String!
-      newPassword: String!
-      passwordHint: String
-    ): SuccessMessage
+    changePassword(oldPassword: String!, newPassword: String!, passwordHint: String): SuccessMessage
     requestReset(email: String!): SuccessMessage
-    resetPassword(
-      resetToken: String!
-      password: String!
-      confirmPassword: String!
-    ): User!
+    resetPassword(resetToken: String!, password: String!, confirmPassword: String!): User!
     updateUser(
       id: ID!
       firstName: String
@@ -193,10 +175,7 @@ module.exports.typeDefs = gql`
     addToBag(id: ID!): User!
     removeFromBag(id: ID!): BagItem
     createOrder(token: String!): Order!
-    requestLaunchNotification(
-      firstName: String!
-      email: String!
-    ): SuccessMessage
+    requestLaunchNotification(firstName: String!, email: String!): SuccessMessage
     onboardStripeUser: StripeAccountLink!
     onboardStripeRefresh: StripeAccountLink!
     createStripeAccount(
@@ -214,20 +193,18 @@ module.exports.typeDefs = gql`
 const now = () => Math.round(new Date().getTime() / 1000);
 
 // this is how "get" the data we need
-module.exports.resolvers = {
+export const resolvers = {
   Date: new GraphQLScalarType({
     name: "Date",
     description: "Date custom scalar type",
-    parseValue(value) {
-      return new Date(value); // value from the client
-    },
     serialize(value) {
       return value.getTime(); // value sent to client
     },
-    parseLiteral(ast) {
-      // TODO: figure out where global kind is set and then remove eslint comment
-      // eslint-disable-next-line no-undef
-      if (ast.kind === kind.INT) {
+    parseValue(value) {
+      return new Date(value); // value from the client
+    },
+    parseLiteral(ast: { kind: string; value: string }) {
+      if (ast.kind === Kind.INT) {
         return new Date(ast.value); // ast value is always in string format
       }
       return null;
@@ -291,7 +268,7 @@ module.exports.resolvers = {
         req.session.accountID = account.id;
 
         const origin = `${req.headers.origin}`;
-        const accountLinkURL = await generateAccountLink(account.id, origin);
+        const accountLinkURL = await generateAccountLink(account.id);
 
         return { url: accountLinkURL };
       } catch (err) {
@@ -306,11 +283,9 @@ module.exports.resolvers = {
       }
       try {
         const { accountID } = req.session;
-        const origin = `${req.secure ? "https://" : "https://"}${
-          req.headers.host
-        }`;
+        const origin = `${req.secure ? "https://" : "https://"}${req.headers.host}`;
 
-        const accountLinkURL = await generateAccountLink(accountID, origin);
+        const accountLinkURL = await generateAccountLink(accountID);
         return { url: accountLinkURL };
         // res.redirect(accountLinkURL);
       } catch (err) {
@@ -394,11 +369,7 @@ module.exports.resolvers = {
         console.error({ error });
       }
     },
-    createItem: async (
-      _,
-      { title, description, image, largeImage, price },
-      context,
-    ) => {
+    createItem: async (_, { title, description, image, largeImage, price }, context) => {
       if (!context.req.userId) {
         throw new Error("You must be logged in to do that!");
       }
@@ -452,9 +423,7 @@ module.exports.resolvers = {
 
       const exists = await User.findOne({ email });
       if (exists) {
-        throw new Error(
-          "email: Hmm, a user with that email already exists. Use another one or sign in.",
-        );
+        throw new Error("email: Hmm, a user with that email already exists. Use another one or sign in.");
       }
 
       // hash plaintext password with given number of saltRounds before storing in db
@@ -497,18 +466,14 @@ module.exports.resolvers = {
       const user = await User.findOne({ email: email });
 
       if (!user) {
-        throw new Error(
-          "email: Hmm, we couldn't find that email in our records. Try again.",
-        );
+        throw new Error("email: Hmm, we couldn't find that email in our records. Try again.");
       }
 
       // check if their password is correct
       const valid = await bcrypt.compare(password, user.password);
 
       if (!valid) {
-        throw new Error(
-          "password: Hmm, that password doesn't match the one we have on record. Try again.",
-        );
+        throw new Error("password: Hmm, that password doesn't match the one we have on record. Try again.");
       }
 
       // generate jwt token
@@ -539,11 +504,7 @@ module.exports.resolvers = {
     },
 
     // TODO: test to make sure this mutation works!
-    changePassword: async (
-      _,
-      { oldPassword, newPassword, passwordHint },
-      context,
-    ) => {
+    changePassword: async (_, { oldPassword, newPassword, passwordHint }, context) => {
       if (!context.req.userId) {
         return null;
       }
@@ -555,9 +516,7 @@ module.exports.resolvers = {
       const valid = await bcrypt.compare(oldPassword, user.password);
 
       if (!valid) {
-        throw new Error(
-          "password: Hmm, that password doesn't match the one we have on record. Try again.",
-        );
+        throw new Error("password: Hmm, that password doesn't match the one we have on record. Try again.");
       }
 
       // TODO: refactor this to a function
@@ -587,9 +546,7 @@ module.exports.resolvers = {
       const user = await User.findOne({ email: args.email });
 
       if (!user) {
-        throw new Error(
-          "email: Hmm, we couldn't find that email in our records. Try again.",
-        );
+        throw new Error("email: Hmm, we couldn't find that email in our records. Try again.");
       }
 
       // set a reset token and expiry for that user
@@ -629,10 +586,7 @@ module.exports.resolvers = {
       // 2. check if its a legit reset token
       // 3. check if its expired
       const [user] = await User.find({
-        $and: [
-          { resetToken: args.resetToken },
-          { resetTokenExpiry: { $gt: Date.now() - 3600000 } },
-        ],
+        $and: [{ resetToken: args.resetToken }, { resetTokenExpiry: { $gt: Date.now() - 3600000 } }],
       });
 
       if (!user) {
@@ -654,10 +608,7 @@ module.exports.resolvers = {
       );
 
       // 6. generate jwt
-      const token = jwt.sign(
-        { userId: updatedUser.id },
-        process.env.APP_SECRET,
-      );
+      const token = jwt.sign({ userId: updatedUser.id }, process.env.APP_SECRET);
       // 7. set the jwt cookie
       context.res.cookie("token", token, {
         httpOnly: true,
@@ -825,18 +776,14 @@ module.exports.resolvers = {
       // 1. query current user and make sure they are signed in
       const { userId } = context.req;
 
-      if (!userId)
-        throw new Error("You must be signed in to complete this order.");
+      if (!userId) throw new Error("You must be signed in to complete this order.");
 
       const user = await User.findOne({
         _id: userId,
       });
 
       // 2. recalculate the total for the price
-      const amount = user.bag.reduce(
-        (tally, bagItem) => tally + bagItem.item.price * bagItem.quantity,
-        0,
-      );
+      const amount = user.bag.reduce((tally, bagItem) => tally + bagItem.item.price * bagItem.quantity, 0);
       // 3. create the stripe charge (turn token into $$$)
       const charge = await stripe.charges.create({
         amount,

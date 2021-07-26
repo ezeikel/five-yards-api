@@ -7,9 +7,5 @@ module.exports = {
   coverageDirectory: path.join(__dirname, "../coverage"),
   coveragePathIgnorePatterns: [".*/__tests__/.*"],
   setupFilesAfterEnv: [require.resolve("./setup-env")],
-  watchPlugins: [
-    "jest-watch-select-projects",
-    "jest-watch-typeahead/filename",
-    "jest-watch-typeahead/testname",
-  ],
+  watchPlugins: ["jest-watch-select-projects", "jest-watch-typeahead/filename", "jest-watch-typeahead/testname"],
 };

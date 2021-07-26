@@ -29,12 +29,12 @@ mongoose.connect(process.env.DATABASE_ENDPOINT, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 });
-mongoose.connection.on("error", (err) => {
+mongoose.connection.on("error", (err: Error) => {
   console.error(`🙅 🚫 🙅 🚫 🙅 🚫 🙅 🚫 → ${err.message}`);
 });
 
 // scrambles a connection string, showing only relevant info
-const scramble = (connectionString = "") => connectionString.replace(/:\/\/.*?\//, "://***/");
+const scramble = (connectionString: String = "") => connectionString.replace(/:\/\/.*?\//, "://***/");
 
 // create express app
 const app = express();
@@ -47,9 +47,9 @@ const whitelist = [/localhost/, /\.fiveyards\.app/];
 
 const corsOptions = {
   optionsSuccessStatus: 200,
-  origin: (origin, callback) => {
+  origin: (origin: string, callback: Function) => {
     // origin is undefined if same-origin
-    if (whitelist.filter((url) => url.test(origin)).length) {
+    if (whitelist.filter((url: RegExp) => url.test(origin)).length) {
       callback(null, true);
     } else {
       callback(new Error(`${origin} is not allowed by CORS.`));
@@ -77,7 +77,7 @@ app.use((req, res, next) => {
 
   if (token) {
     try {
-      const { userId } = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+      const { userId } = <{ userId: string }>jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
       req.userId = userId;
     } catch (err) {
       console.log(err);
@@ -89,7 +89,7 @@ app.use((req, res, next) => {
 });
 
 // get User from their id
-app.use(async (req, res, next) => {
+app.use(async (req: express.Request, res: express.Response, next) => {
   if (!req.userId) return next();
 
   try {
