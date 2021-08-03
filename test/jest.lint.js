@@ -7,13 +7,12 @@ const ignores = [
   "/__tests__/helpers/",
   "/__tests__/utils/",
   "__mocks__",
-  "/test", // TODO: fixes issue with import for now
 ];
 
 module.exports = {
   rootDir: path.join(__dirname, ".."),
   displayName: "lint",
   runner: "jest-runner-eslint",
-  testMatch: ["<rootDir>/**/*.js"],
+  testMatch: ["<rootDir>/**/*.[jt]s"],
   testPathIgnorePatterns: [...ignores],
 };

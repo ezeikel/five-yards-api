@@ -1,4 +1,5 @@
 import mongoose, { Schema, model } from "mongoose";
+import validator from "validator";
 
 // TODO: move to utils folder
 const capitalize = (val) => {

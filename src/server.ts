@@ -34,7 +34,7 @@ mongoose.connection.on("error", (err: Error) => {
 });
 
 // scrambles a connection string, showing only relevant info
-const scramble = (connectionString: String = "") => connectionString.replace(/:\/\/.*?\//, "://***/");
+const scramble = (connectionString = "") => connectionString.replace(/:\/\/.*?\//, "://***/");
 
 // create express app
 const app = express();
@@ -47,7 +47,7 @@ const whitelist = [/localhost/, /\.fiveyards\.app/];
 
 const corsOptions = {
   optionsSuccessStatus: 200,
-  origin: (origin: string, callback: Function) => {
+  origin: (origin: string, callback: () => void) => {
     // origin is undefined if same-origin
     if (whitelist.filter((url: RegExp) => url.test(origin)).length) {
       callback(null, true);

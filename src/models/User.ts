@@ -4,6 +4,26 @@ import validator from "validator";
 import mongodbErrorHandler from "mongoose-mongodb-errors";
 import passportLocalMongoose from "passport-local-mongoose";
 
+interface Item {
+  title: string;
+  description: string;
+  image: string;
+  largeImage: string;
+  price: number;
+  user: User;
+}
+interface BagItem {
+  quantity: number;
+  item: Item;
+  user: [User];
+}
+
+interface BagItem {
+  quantity: number;
+  item: Item;
+  user: [User];
+}
+
 interface User {
   firstName: string;
   lastName: string;
@@ -14,8 +34,8 @@ interface User {
   password: string;
   resetToken?: string;
   resetTokenExpiry?: string;
-  bag?: string;
-  permission: [string];
+  bag?: [BagItem];
+  permissions: [string];
 }
 
 // TODO: move to utils folder

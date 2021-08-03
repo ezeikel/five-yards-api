@@ -4,7 +4,7 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { randomBytes } from "crypto";
 import { promisify } from "util";
-import stripe from "stripe";
+import Stripe from "stripe";
 import { transport, makeNiceEmail } from "./mail";
 import User from "./models/User";
 import Item from "./models/Item";
@@ -13,7 +13,9 @@ import Order from "./models/Order";
 import OrderItem from "./models/OrderItem";
 import rp from "request-promise";
 
-stripe(process.env.STRIPE_SECRET_KEY);
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+  apiVersion: "2020-08-27",
+});
 
 function generateAccountLink(accountID: string) {
   return stripe.accountLinks
@@ -430,7 +432,7 @@ export const resolvers = {
       const hashedPassword = await bcrypt.hash(password, 10);
 
       // save new user to the db with default USER permission
-      const user = await User({
+      const user = await new User({
         firstName,
         lastName,
         email,
@@ -821,7 +823,7 @@ export const resolvers = {
       });
 
       // 6. clean up - clear the users bag, delete bagItems
-      const bagItemIds = user.bag.map((bagItem) => bagItem.id);
+      const bagItemIds = user.bag.map((bagItem) => bagItem._id);
 
       await BagItem.deleteMany({
         _id: { $in: bagItemIds },

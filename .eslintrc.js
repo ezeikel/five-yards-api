@@ -1,14 +1,9 @@
 module.exports = {
-  parser: "@typescript-eslint/parser", // specifies ESLint parser
-  plugins: ["@typescript-eslint"],
   parserOptions: {
     ecmaVersion: 2020, // allows for the parsing of modern ECMAScript features
     sourceType: "module", // allows for the use of imports
   },
-  extends: [
-    "plugin:@typescript-eslint/recommended", // uses the recommended rules from the @typescript-eslint/eslint-plugin
-    "plugin:prettier/recommended",
-  ],
+  extends: ["eslint:recommended", "eslint-config-prettier"],
   env: {
     node: true,
     mongo: true,
@@ -18,6 +13,15 @@ module.exports = {
     "valid-typeof": "error",
   },
   overrides: [
+    {
+      files: "**/*.+(ts|tsx)",
+      parser: "@typescript-eslint/parser",
+      parserOptions: {
+        project: "./tsconfig.json",
+      },
+      plugins: ["@typescript-eslint/eslint-plugin"],
+      extends: ["plugin:@typescript-eslint/eslint-recommended", "plugin:@typescript-eslint/recommended"],
+    },
     {
       files: ["**/__tests__/**"],
       settings: {

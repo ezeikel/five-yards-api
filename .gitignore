@@ -110,3 +110,6 @@ variables.env
 process.defaults.js
 .now
 .vercel
+
+coverage
+dist
