@@ -47,7 +47,7 @@ const whitelist = [/localhost/, /\.fiveyards\.app/];
 
 const corsOptions = {
   optionsSuccessStatus: 200,
-  origin: (origin: string, callback: () => void) => {
+  origin: (origin: string, callback: (error: Error, allowed?: boolean) => void) => {
     // origin is undefined if same-origin
     if (whitelist.filter((url: RegExp) => url.test(origin)).length) {
       callback(null, true);

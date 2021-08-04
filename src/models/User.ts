@@ -5,6 +5,7 @@ import mongodbErrorHandler from "mongoose-mongodb-errors";
 import passportLocalMongoose from "passport-local-mongoose";
 
 interface Item {
+  _id: string;
   title: string;
   description: string;
   image: string;
@@ -13,18 +14,14 @@ interface Item {
   user: User;
 }
 interface BagItem {
-  quantity: number;
-  item: Item;
-  user: [User];
-}
-
-interface BagItem {
+  _id: string;
   quantity: number;
   item: Item;
   user: [User];
 }
 
 interface User {
+  _id: string;
   firstName: string;
   lastName: string;
   gender: string;
@@ -33,7 +30,7 @@ interface User {
   measurements?: string;
   password: string;
   resetToken?: string;
-  resetTokenExpiry?: string;
+  resetTokenExpiry?: number;
   bag?: [BagItem];
   permissions: [string];
 }
@@ -87,7 +84,7 @@ const userSchema = new Schema<User>(
       minlength: 6,
     },
     resetToken: String,
-    resetTokenExpiry: String,
+    resetTokenExpiry: Number,
     bag: [
       {
         type: mongoose.Types.ObjectId,
