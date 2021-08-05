@@ -1,5 +1,5 @@
 import { gql } from "apollo-server-express";
-import { GraphQLScalarType, Kind } from "graphql";
+import { GraphQLScalarType, Kind, ValueNode } from "graphql";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { randomBytes } from "crypto";
@@ -205,7 +205,7 @@ export const resolvers = {
     parseValue(value) {
       return new Date(value); // value from the client
     },
-    parseLiteral(ast: { kind: string; value: string }) {
+    parseLiteral(ast: ValueNode) {
       if (ast.kind === Kind.INT) {
         return new Date(ast.value); // ast value is always in string format
       }
@@ -347,7 +347,7 @@ export const resolvers = {
             ip: req.ip,
           },
           business_profile: {
-            mcc: 7623, // TODO: harcoded for now - https://docs.checkout.com/resources/codes/merchant-category-codes
+            mcc: "7623", // TODO: harcoded for now - https://docs.checkout.com/resources/codes/merchant-category-codes
             url,
           },
           company: {
