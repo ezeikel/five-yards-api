@@ -2,21 +2,14 @@ import express from "express";
 import cors from "cors";
 import morgan from "morgan";
 import cookierParser from "cookie-parser";
-import * as mongoose from "mongoose";
+import mongoose from "mongoose";
 import jwt from "jsonwebtoken";
 import { ApolloServer } from "apollo-server-express";
 import { typeDefs, resolvers } from "./schema";
-import Sentry from "@sentry/node";
+import * as Sentry from "@sentry/node";
 import "colors";
 import compression from "compression";
 import User from "./models/User";
-
-// import environment variables from the .env file
-if (process.env.NODE_ENV !== "staging" && process.env.NODE_ENV !== "production") {
-  import("dotenv").then((dotenv) => {
-    dotenv.config({ path: ".env" });
-  });
-}
 
 Sentry.init({
   enabled: process.env.NODE_ENV === "production",
@@ -43,12 +36,13 @@ const app = express();
 app.use(compression());
 
 // enable cors
-const whitelist = [/localhost/, /\.fiveyards\.app/];
+const whitelist = [/undefined/, /localhost/, /\.fiveyards\.app/];
 
 const corsOptions = {
   optionsSuccessStatus: 200,
   origin: (origin: string, callback: (error: Error, allowed?: boolean) => void) => {
     // origin is undefined if same-origin
+
     if (whitelist.filter((url: RegExp) => url.test(origin)).length) {
       callback(null, true);
     } else {
