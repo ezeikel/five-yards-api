@@ -4,7 +4,7 @@
   "env": {
     "APP_SECRET": "@app_secret",
     "NODE_ENV": "production",
-    "PORT": "7777",
+    "PORT": "7000",
     "DATABASE_ENDPOINT": "@five_yards_prod_database_endpoint",
     "FRONTEND_URL": "https://fiveyards.app",
     "MAILCHIMP_KEY": "@mailchimp_key",

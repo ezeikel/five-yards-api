@@ -36,7 +36,7 @@ const app = express();
 app.use(compression());
 
 // enable cors
-const whitelist = [/undefined/, /localhost/, /\.fiveyards\.app/];
+const whitelist = [/undefined/, /localhost/, /https?:\/\/([a-z0-9]+[.])*fiveyards[.]app/];
 
 const corsOptions = {
   optionsSuccessStatus: 200,
