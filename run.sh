@@ -6,7 +6,6 @@ export NVM_DIR="$([ -z "${XDG_CONFIG_HOME-}" ] && printf %s "${HOME}/.nvm" || pr
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" # This loads nvm
 nvm install node
 npm install pm2 -g
-pm2 start yarn --name "five-yards-api" --log-date-format "YYYY-MM-DD HH:mm" -- start
+pm2 restart yarn --name "five-yards-api" --log-date-format "YYYY-MM-DD HH:mm" -- start
 pm2 startup
 pm2 save
-touch test.txt
