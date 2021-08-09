@@ -9,3 +9,4 @@ npm install pm2 -g
 pm2 start yarn --name "five-yards-api" --log-date-format "YYYY-MM-DD HH:mm" -- start
 pm2 startup
 pm2 save
+touch test.txt
