@@ -105,11 +105,8 @@ variables.env
 ### VisualStudioCode ###
 .vscode/*
 
-
 # misc
 process.defaults.js
-.now
-.vercel
 
 coverage
 dist
