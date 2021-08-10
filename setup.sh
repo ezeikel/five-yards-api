@@ -7,6 +7,7 @@ export NVM_DIR="$([ -z "${XDG_CONFIG_HOME-}" ] && printf %s "${HOME}/.nvm" || pr
 nvm install node
 npm install pm2 -g
 npm install --global yarn
+git pull origin main
 yarn install
 rm -rf ./dist
 yarn build
