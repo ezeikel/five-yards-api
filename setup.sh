@@ -8,4 +8,5 @@ nvm install node
 npm install pm2 -g
 npm install --global yarn
 yarn install
+rm -rf ./dist
 yarn build
