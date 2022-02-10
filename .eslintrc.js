@@ -1,33 +1,38 @@
 module.exports = {
   parserOptions: {
-    ecmaVersion: 2020, // allows for the parsing of modern ECMAScript features
-    sourceType: "module", // allows for the use of imports
+    ecmaVersion: 'latest',
+    sourceType: 'module',
   },
-  extends: ["eslint:recommended", "eslint-config-prettier"],
+  extends: ['airbnb-base', 'plugin:prettier/recommended'],
   env: {
     node: true,
     mongo: true,
     jest: true,
   },
   rules: {
-    "valid-typeof": "error",
+    'valid-typeof': 'error',
+    'no-console': [2, { allow: ['warn', 'error'] }],
   },
   overrides: [
     {
-      files: "**/*.+(ts|tsx)",
-      parser: "@typescript-eslint/parser",
+      files: '**/*.ts',
+      parser: '@typescript-eslint/parser',
       parserOptions: {
-        project: "./tsconfig.json",
+        project: './tsconfig.json',
       },
-      plugins: ["@typescript-eslint/eslint-plugin"],
-      extends: ["plugin:@typescript-eslint/eslint-recommended", "plugin:@typescript-eslint/recommended"],
+      plugins: ['@typescript-eslint/eslint-plugin'],
+      extends: [
+        'airbnb-base',
+        'airbnb-typescript/base',
+        'plugin:prettier/recommended',
+      ],
     },
     {
-      files: ["**/__tests__/**"],
+      files: ['**/*.test.ts'],
       settings: {
-        "import/resolver": {
+        'import/resolver': {
           jest: {
-            jestConfigFile: "./test/jest-config.js",
+            jestConfigFile: './test/jest-config.js',
           },
         },
       },

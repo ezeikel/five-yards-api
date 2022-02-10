@@ -1,1 +1,1 @@
-# Five Yards API.
+# five-yards-api
