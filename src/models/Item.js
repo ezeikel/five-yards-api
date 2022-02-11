@@ -1,4 +1,4 @@
-import mongoose, { Schema, model } from "mongoose";
+import mongoose, { Schema, model } from 'mongoose';
 
 // document structure
 const itemSchema = new Schema(
@@ -6,7 +6,7 @@ const itemSchema = new Schema(
     title: {
       type: String,
       trim: true,
-      required: "Please enter an item title",
+      required: 'Please enter an item title',
     },
     description: {
       type: String,
@@ -17,8 +17,8 @@ const itemSchema = new Schema(
     price: Number,
     user: {
       type: mongoose.Schema.ObjectId,
-      ref: "User",
-      require: "You must supply a user",
+      ref: 'User',
+      require: 'You must supply a user',
     },
   },
   {
@@ -27,4 +27,4 @@ const itemSchema = new Schema(
 );
 
 // compile model and export
-export default model("Item", itemSchema);
+export default model('Item', itemSchema);

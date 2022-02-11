@@ -1,5 +1,5 @@
 module.exports = {
-  ...require("./test/jest-common"),
+  ...require('./test/jest-common'), // eslint-disable-line global-require
   coverageThreshold: {
     global: {
       statements: 34,
@@ -8,5 +8,5 @@ module.exports = {
       lines: 29,
     },
   },
-  projects: ["./test/jest.lint.js"],
+  projects: ['./test/jest.lint.js'],
 };

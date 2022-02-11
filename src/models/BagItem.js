@@ -1,4 +1,4 @@
-import mongoose, { Schema, model } from "mongoose";
+import mongoose, { Schema, model } from 'mongoose';
 
 // document structure
 const bagItemSchema = new Schema(
@@ -9,11 +9,11 @@ const bagItemSchema = new Schema(
     },
     item: {
       type: mongoose.Schema.ObjectId,
-      ref: "Item",
+      ref: 'Item',
     },
     user: {
       type: mongoose.Schema.ObjectId,
-      ref: "User",
+      ref: 'User',
     },
   },
   {
@@ -22,12 +22,12 @@ const bagItemSchema = new Schema(
 );
 
 function autopopulate(next) {
-  this.populate("item");
+  this.populate('item');
   next();
 }
 
-bagItemSchema.pre("find", autopopulate);
-bagItemSchema.pre("findOne", autopopulate);
+bagItemSchema.pre('find', autopopulate);
+bagItemSchema.pre('findOne', autopopulate);
 
 // compile model and export
-module.exports = model("BagItem", bagItemSchema);
+module.exports = model('BagItem', bagItemSchema);

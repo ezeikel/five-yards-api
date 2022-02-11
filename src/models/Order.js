@@ -1,4 +1,4 @@
-import mongoose, { Schema, model } from "mongoose";
+import mongoose, { Schema, model } from 'mongoose';
 
 // document structure
 const orderSchema = new Schema(
@@ -8,12 +8,12 @@ const orderSchema = new Schema(
     items: [
       {
         type: mongoose.Schema.ObjectId,
-        ref: "OrderItem",
+        ref: 'OrderItem',
       },
     ],
     user: {
       type: mongoose.Schema.ObjectId,
-      ref: "User",
+      ref: 'User',
     },
   },
   {
@@ -22,14 +22,14 @@ const orderSchema = new Schema(
 );
 
 function autopopulate(next) {
-  this.populate("items");
-  this.populate("user");
+  this.populate('items');
+  this.populate('user');
   next();
 }
 
-orderSchema.pre("find", autopopulate);
-orderSchema.pre("findOne", autopopulate);
-orderSchema.pre("findOneAndUpdate", autopopulate);
+orderSchema.pre('find', autopopulate);
+orderSchema.pre('findOne', autopopulate);
+orderSchema.pre('findOneAndUpdate', autopopulate);
 
 // compile model and export
-export default model("Order", orderSchema);
+export default model('Order', orderSchema);

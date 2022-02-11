@@ -1,9 +1,9 @@
-import mongoose, { Schema, model } from "mongoose";
-import validator from "validator";
+import mongoose, { Schema, model } from 'mongoose';
+import validator from 'validator';
 
 // TODO: move to utils folder
-const capitalize = (val) => {
-  if (typeof val !== "string") val = "";
+const capitalize = val => {
+  if (typeof val !== 'string') val = '';
   return val.charAt(0).toUpperCase() + val.substring(1);
 };
 
@@ -12,27 +12,27 @@ const representativechema = new Schema(
   {
     firstName: {
       type: String,
-      required: "Please supply a first name",
+      required: 'Please supply a first name',
       trim: true,
       set: capitalize,
     },
     lastName: {
       type: String,
-      required: "Please supply a last name",
+      required: 'Please supply a last name',
       trim: true,
       set: capitalize,
     },
     dob: {
       type: String,
-      required: "Please supply a DOB",
+      required: 'Please supply a DOB',
     },
     email: {
       type: String,
       unique: true,
       lowercase: true,
       trim: true,
-      validate: [validator.isEmail, "Invalid Email Address"],
-      required: "Please supply an email address",
+      validate: [validator.isEmail, 'Invalid Email Address'],
+      required: 'Please supply an email address',
     },
     phone: {
       type: String,
@@ -41,24 +41,24 @@ const representativechema = new Schema(
     location: {
       type: {
         type: String,
-        default: "Point",
+        default: 'Point',
       },
       coordinates: [
         {
           type: Number,
-          required: "You must supply coordinates",
+          required: 'You must supply coordinates',
         },
       ],
       address: {
         type: String,
-        required: "You must supply an address",
+        required: 'You must supply an address',
         trim: true,
       },
     },
     taxInformation: String,
     business: {
       type: mongoose.Schema.ObjectId,
-      ref: "Business",
+      ref: 'Business',
     },
     businessTitle: String,
     owner: Boolean, // TODO: do we need to store % ownership aswell?
@@ -66,7 +66,7 @@ const representativechema = new Schema(
     stripePersonId: {
       type: String,
       unique: true,
-      required: "Please provide Stripe Person ID",
+      required: 'Please provide Stripe Person ID',
     },
   },
   {
@@ -75,4 +75,4 @@ const representativechema = new Schema(
 );
 
 // compile model and export
-export default model("Representative", representativechema);
+export default model('Representative', representativechema);

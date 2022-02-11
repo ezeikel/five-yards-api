@@ -1,4 +1,4 @@
-import mongoose, { Schema, model } from "mongoose";
+import mongoose, { Schema, model } from 'mongoose';
 
 // document structure
 const businessSchema = new Schema(
@@ -6,8 +6,8 @@ const businessSchema = new Schema(
     //  required by stripe
     type: {
       type: String,
-      enum: ["INDIVIDUAL", "COMPANY"],
-      default: "INDIVIDUAL",
+      enum: ['INDIVIDUAL', 'COMPANY'],
+      default: 'INDIVIDUAL',
     },
     merchantCategoryCode: String,
     url: String,
@@ -15,12 +15,12 @@ const businessSchema = new Schema(
     stripeAccountId: {
       type: String,
       unique: true,
-      required: "Please provide Stripe Connected Account ID",
+      required: 'Please provide Stripe Connected Account ID',
     },
     representatives: [
       {
         type: mongoose.Schema.ObjectId,
-        ref: "Representative",
+        ref: 'Representative',
       },
     ],
     name: String,
@@ -28,17 +28,17 @@ const businessSchema = new Schema(
     location: {
       type: {
         type: String,
-        default: "Point",
+        default: 'Point',
       },
       coordinates: [
         {
           type: Number,
-          required: "You must supply coordinates",
+          required: 'You must supply coordinates',
         },
       ],
       address: {
         type: String,
-        required: "You must supply an address",
+        required: 'You must supply an address',
         trim: true,
       },
     },
@@ -51,30 +51,30 @@ const businessSchema = new Schema(
     },
     vendorType: {
       type: String,
-      enum: ["TAILOR", "FABRICSELLER"],
+      enum: ['TAILOR', 'FABRICSELLER'],
     },
     logo: String,
     previousWorkImages: [String],
     hours: {
       type: mongoose.Schema.ObjectId,
-      ref: "Hours", // TODO: create hours Model
+      ref: 'Hours', // TODO: create hours Model
     },
     yearsExperience: Number,
     priceRange: {
       type: String,
-      enum: ["UNDER100", "OVER100"],
+      enum: ['UNDER100', 'OVER100'],
     },
     servicesOffered: {
       type: mongoose.Schema.ObjectId,
-      ref: "Services", // TODO: create services Model
+      ref: 'Services', // TODO: create services Model
     },
     areasOfExpertise: {
       type: mongoose.Schema.ObjectId,
-      ref: "Expertise", // TODO: create expertise Model
+      ref: 'Expertise', // TODO: create expertise Model
     },
     eventsCateredFor: {
       type: mongoose.Schema.ObjectId,
-      ref: "Events",
+      ref: 'Events',
     },
     averageTimeForCompletion: Number, // TODO: nest under timescales?
     extraTimeNeededToCompleteGroupOrder: Number,
@@ -94,4 +94,4 @@ const businessSchema = new Schema(
 );
 
 // compile model and export
-export default model("Business", businessSchema);
+export default model('Business', businessSchema);

@@ -1,4 +1,4 @@
-import { Schema, model } from "mongoose";
+import { Schema, model } from 'mongoose';
 // document structure
 const measurementsSchema = new Schema(
   {
@@ -14,4 +14,4 @@ const measurementsSchema = new Schema(
 );
 
 // compile model and export
-export default model("Measurements", measurementsSchema);
+export default model('Measurements', measurementsSchema);

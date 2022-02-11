@@ -1,4 +1,4 @@
-import mongoose, { Schema, model } from "mongoose";
+import mongoose, { Schema, model } from 'mongoose';
 
 // document structure
 const orderItemSchema = new Schema(
@@ -14,7 +14,7 @@ const orderItemSchema = new Schema(
     },
     user: {
       type: mongoose.Schema.ObjectId,
-      ref: "User",
+      ref: 'User',
     },
   },
   {
@@ -23,4 +23,4 @@ const orderItemSchema = new Schema(
 );
 
 // compile model and export
-export default model("OrderItem", orderItemSchema);
+export default model('OrderItem', orderItemSchema);
