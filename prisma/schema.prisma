@@ -145,7 +145,7 @@ model Representative {
 
 model Product {
   id          String    @id @default(dbgenerated()) @map("_id") @db.ObjectId
-  title       String
+  name        String
   description String
   media       Media[]
   price       Int

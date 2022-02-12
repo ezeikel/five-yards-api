@@ -1,8 +1,6 @@
 import { gql } from 'apollo-server-express';
 
 const typeDefs = gql`
-  # The "Query" type is the root of all GraphQL queries.
-
   scalar Date
 
   enum Permission {
@@ -73,9 +71,9 @@ const typeDefs = gql`
 
   type Product {
     id: ID!
-    title: String!
+    name: String!
     description: String!
-    media: [String]
+    media: [Media]
     price: Int!
     seller: User!
     createdAt: Date!
@@ -84,9 +82,9 @@ const typeDefs = gql`
 
   type Service {
     id: ID!
-    title: String!
+    name: String!
     description: String!
-    media: [String]
+    media: [Media]
     price: Int!
     seller: User!
     createdAt: Date!
@@ -172,8 +170,8 @@ const typeDefs = gql`
       email: String!
       password: String!
     ): CreateUserResponse!
-    signin(email: String!, password: String!): LogInResponse!
-    signout: SuccessMessage
+    logIn(email: String!, password: String!): LogInResponse!
+    logOut: SuccessMessage
     changePassword(oldPassword: String!, newPassword: String!): SuccessMessage
     requestReset(email: String!): SuccessMessage
     resetPassword(
@@ -182,12 +180,11 @@ const typeDefs = gql`
       newPasswordConfirm: String!
     ): User!
     updateUser(
-      id: ID!
       firstName: String
       lastName: String
       gender: Gender
       email: String
-      phone: String
+      phoneNumber: String
       measurements: MeasurementsInput
     ): User!
     deleteUser(id: ID!): User!

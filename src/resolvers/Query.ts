@@ -1,8 +1,10 @@
+import { Context } from 'context';
+
 const Query = {
   // secret: () => {
   //   const intent = res.json({ client_secret: intent.client_secret }); // ... Fetch or create the PaymentIntent
   // },
-  currentUser: (parent, args, context) => {
+  currentUser: (parent: any, args, context: Context) => {
     if (!context.user) {
       return null;
     }
@@ -13,21 +15,32 @@ const Query = {
       },
     });
   },
-  users: (parent, args, context) => context.prisma.user.findMany(),
-  product: (parent, { id }, context) =>
+  users: (parent: any, args, context: Context) =>
+    context.prisma.user.findMany(),
+  product: (parent: any, { id }, context: Context) =>
     context.prisma.product.findUnique({ where: { id } }),
-  products: (parent, args, context) =>
+  products: (parent: any, args, context: Context) =>
     context.prisma.product.findMany({
       where: {
-        seller: context.user.id,
+        seller: {
+          is: {
+            id: context.user.id,
+          },
+        },
       },
     }),
-  order: (parent, { id }, context) =>
+  order: (parent: any, { id }, context: Context) =>
     context.prisma.order.findUnique({ where: { id } }),
-  orders: (parent, args, context) =>
+  orders: (parent: any, args, context: Context) =>
     context.prisma.order.findMany({
       where: {
-        seller: context.user.id,
+        cart: {
+          user: {
+            is: {
+              id: context.user.id,
+            },
+          },
+        },
       },
     }),
 };

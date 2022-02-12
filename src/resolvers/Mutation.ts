@@ -218,7 +218,7 @@ const Mutation = {
       token,
     };
   },
-  signin: async (parent, { email, password }, context: Context) => {
+  logIn: async (parent, { email, password }, context: Context) => {
     // check if there is a user with this email
     const user = await context.prisma.user.findUnique({
       where: {
@@ -259,9 +259,11 @@ const Mutation = {
     };
   },
 
-  signout: (parent, args, context: Context) => {
+  logOut: (parent: any, args, context: Context) => {
     context.res.clearCookie('token');
-    return { message: 'Goodbye!' };
+    return {
+      message: `Successfully logged out user with id ${context.user?.id}`,
+    };
   },
   // TODO: this should just be part of updateUser
   changePassword: async (
@@ -389,15 +391,22 @@ const Mutation = {
 
     return updatedUser;
   },
-  updateUser: (parent, { id, firstName, lastName }, context: Context) =>
+  updateUser: (
+    parent,
+    { firstName, lastName, gender, email, phoneNumber },
+    context: Context,
+  ) =>
     context.prisma.user.update({
       where: {
-        id,
+        id: context.user.id,
       },
       data: {
         firstName,
         lastName,
-        // TODO: add more update fields
+        gender,
+        email,
+        phoneNumber,
+        // TODO: add measurements too
       },
     }),
   deleteUser: (parent, { id }, context: Context) =>
