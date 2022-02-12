@@ -6,7 +6,8 @@ import { randomBytes } from 'crypto';
 import rp from 'request-promise';
 import addHours from 'date-fns/addHours';
 import subHours from 'date-fns/subHours';
-import { Context } from 'context';
+import { User } from '@prisma/client';
+import { Context } from '../context';
 import { asyncForEach, generateStripeAccountLink } from '../utils';
 import { transport, makeNiceEmail } from '../mail';
 
@@ -393,7 +394,7 @@ const Mutation = {
   },
   updateUser: (
     parent,
-    { firstName, lastName, gender, email, phoneNumber },
+    { firstName, lastName, gender, email, phoneNumber }: User,
     context: Context,
   ) =>
     context.prisma.user.update({
