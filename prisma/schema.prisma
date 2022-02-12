@@ -1,0 +1,238 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["mongoDb"]
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  NONBINARY
+  NOTSPECIFIED
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+enum BusinessType {
+  INDIVIDUAL
+  COMPANY
+}
+
+enum PriceRange {
+  UNDER100
+  OVER100
+}
+
+enum EventType {
+  ENGAGEMENT
+  WEDDING
+  PARTY
+  ANNIVERSARY
+  BABY_SHOWER
+  FUNERAL
+}
+
+enum MediaType {
+  IMAGE
+  VIDEO
+}
+
+model User {
+  id               String        @id @default(dbgenerated()) @map("_id") @db.ObjectId
+  firstName        String
+  lastName         String
+  email            String        @unique
+  gender           Gender        @default(value: NOTSPECIFIED)
+  password         String
+  role             UserRole      @default(USER)
+  phoneNumber      String?
+  measurements     Measurements?
+  resetToken       String?
+  resetTokenExpiry DateTime?
+  products         Product[]
+  services         Service[]
+  carts            Cart[]
+  deletedAt        DateTime?
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  @@map("users")
+}
+
+// TODO: should be embedded document
+model Measurements {
+  id        String   @id @default(dbgenerated()) @map("_id") @db.ObjectId
+  neck      String
+  waist     String
+  hips      String
+  bust      String
+  armLength String
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String   @unique @db.ObjectId
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("measurements")
+}
+
+// TODO: a lot of these fields are required by stripe
+model Business {
+  id                                  String           @id @default(dbgenerated()) @map("_id") @db.ObjectId
+  type                                BusinessType     @default(INDIVIDUAL)
+  merchantCategoryCode                String
+  url                                 String
+  termsOfService                      String // TODO: tos_acceptance.date, tos_acceptance.ip
+  stripeAccountId                     String           @unique
+  representatives                     Representative[]
+  name                                String
+  phoneNumber                         String
+  location                            String
+  taxId                               String
+  password                            String
+  vendorType                          String
+  logo                                Media            @relation("BusinessLogo", fields: [logoId], references: [id], onUpdate: NoAction, onDelete: NoAction) // FIX: https://www.prisma.io/docs/concepts/components/prisma-schema/relations/referential-actions/special-rules-for-referential-actions#self-relation-sql-server-and-mongodb
+  logoId                              String           @unique @db.ObjectId
+  previousWorkImages                  Media[]          @relation("PreviousWork")
+  hours                               String
+  yearsExperience                     Int
+  priceRange                          PriceRange
+  areasOfExpertise                    String
+  eventsCateredFor                    EventType
+  averageTimeForCompletion            Int
+  extraTimeNeededToCompleteGroupOrder Int
+  processingTime                      Int
+  ukdispatchOrigin                    String
+  uKDeliveryCarrier                   String
+  ukMailClass                         String
+  ukDeliveryCost                      Int
+  otherDeliveryCarrier                String
+  otherMailClass                      String
+  otherDeliveryCost                   Int
+  termsAndConditions                  String
+  createdAt                           DateTime         @default(now())
+  updatedAt                           DateTime         @updatedAt
+
+  @@map("businesses")
+}
+
+// TODO: this is required by stripe
+model Representative {
+  id              String   @id @default(dbgenerated()) @map("_id") @db.ObjectId
+  firstName       String
+  lastName        String
+  dateOfBirth     DateTime
+  email           String   @unique
+  phoneNumber     String
+  location        String
+  taxInformation  String
+  business        Business @relation(fields: [businessId], references: [id])
+  businessId      String   @db.ObjectId
+  businessTitle   String
+  ownerOfBusiness Boolean  @default(false)
+  stripePersonId  String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("representatives")
+}
+
+model Product {
+  id          String    @id @default(dbgenerated()) @map("_id") @db.ObjectId
+  title       String
+  description String
+  media       Media[]
+  price       Int
+  seller      User      @relation(fields: [sellerId], references: [id])
+  sellerId    String    @db.ObjectId
+  cartItem    CartItem?
+  deletedAt   DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@map("products")
+}
+
+model Service {
+  id          String    @id @default(dbgenerated()) @map("_id") @db.ObjectId
+  title       String
+  description String
+  media       Media[]
+  price       Int
+  seller      User      @relation(fields: [sellerId], references: [id])
+  sellerId    String    @db.ObjectId
+  cartItem    CartItem?
+  deletedAt   DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@map("services")
+}
+
+model Cart {
+  id        String     @id @default(dbgenerated()) @map("_id") @db.ObjectId
+  total     Int
+  processed Boolean    @default(false)
+  user      User       @relation(fields: [userId], references: [id])
+  userId    String     @db.ObjectId
+  cartItems CartItem[]
+  order     Order?
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  @@map("carts")
+}
+
+model CartItem {
+  id        String   @id @default(dbgenerated()) @map("_id") @db.ObjectId
+  quantity  Int
+  product   Product  @relation(fields: [productId], references: [id])
+  productId String   @unique @db.ObjectId
+  service   Service  @relation(fields: [serviceId], references: [id])
+  serviceId String   @unique @db.ObjectId
+  cart      Cart     @relation(fields: [cartId], references: [id])
+  cartId    String   @db.ObjectId
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("cartItems")
+}
+
+model Order {
+  id              String   @id @default(dbgenerated()) @map("_id") @db.ObjectId
+  total           Int
+  stripeChargeId  String
+  billingAddress  String?
+  deliveryAddress String?
+  cart            Cart     @relation(fields: [cartId], references: [id])
+  cartId          String   @unique @db.ObjectId
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("orders")
+}
+
+model Media {
+  id                        String    @id @default(dbgenerated()) @map("_id") @db.ObjectId
+  type                      MediaType
+  url                       String
+  publicId                  String
+  logoForBusiness           Business? @relation("BusinessLogo")
+  previousWorkForBusiness   Business? @relation("PreviousWork", fields: [previousWorkForBusinessId], references: [id])
+  previousWorkForBusinessId String?   @db.ObjectId
+  product                   Product?  @relation(fields: [productId], references: [id])
+  productId                 String?   @db.ObjectId
+  service                   Service?  @relation(fields: [serviceId], references: [id])
+  serviceId                 String?   @db.ObjectId
+  deletedAt                 DateTime?
+  createdAt                 DateTime  @default(now())
+  updatedAt                 DateTime  @updatedAt
+
+  @@map("media")
+}

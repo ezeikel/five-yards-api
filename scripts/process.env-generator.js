@@ -7,7 +7,7 @@ const defaults = require('../process.defaults');
 const keys = [
   'APP_SECRET',
   'PORT',
-  'DATABASE_ENDPOINT',
+  'DATABASE_URL',
   'FRONTEND_URL',
   'MAILCHIMP_KEY',
   'MAIL_HOST',

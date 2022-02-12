@@ -21,6 +21,16 @@ const typeDefs = gql`
     NOTSPECIFIED
   }
 
+  enum UserRole {
+    USER
+    ADMIN
+  }
+
+  enum MediaType {
+    IMAGE
+    VIDEO
+  }
+
   input MeasurementsInput {
     neck: Float
     waist: Float
@@ -32,8 +42,8 @@ const typeDefs = gql`
   type Query {
     currentUser: User
     users: [User]!
-    item(id: ID!): Item
-    items: [Item]!
+    product(id: ID!): Product
+    products: [Product]!
     order(id: ID!): Order
     orders: [Order]!
   }
@@ -61,23 +71,43 @@ const typeDefs = gql`
     updatedAt: Date!
   }
 
-  type Item {
+  type Product {
     id: ID!
     title: String!
     description: String!
-    image: String
-    largeImage: String
+    media: [String]
     price: Int!
-    user: User!
+    seller: User!
     createdAt: Date!
     updatedAt: Date!
   }
 
-  type BagItem {
+  type Service {
+    id: ID!
+    title: String!
+    description: String!
+    media: [String]
+    price: Int!
+    seller: User!
+    createdAt: Date!
+    updatedAt: Date!
+  }
+
+  type Cart {
+    id: ID!
+    total: Int
+    processed: Boolean
+    user: User
+    createdAt: Date!
+    updatedAt: Date!
+  }
+
+  type CartItem {
     id: ID!
     quantity: Int!
-    item: Item
-    user: User!
+    product: Product
+    service: Service
+    cart: Cart
     createdAt: Date!
     updatedAt: Date!
   }
@@ -86,70 +116,70 @@ const typeDefs = gql`
     id: ID!
     firstName: String!
     lastName: String!
-    gender: Gender!
     email: String!
-    phone: String
     password: String!
-    gravatar: String
+    role: UserRole!
+    gender: Gender!
+    phoneNumber: String
     measurements: Measurements
     resetToken: String
     resetTokenExpiry: String
-    bag: [BagItem!]
+    cart: [CartItem!]
     requestedDeletion: Boolean!
-    permissions: [Permission]!
     createdAt: Date!
     updatedAt: Date!
   }
 
   type Order {
     id: ID!
-    items: [OrderItem!]
     total: Int!
-    user: User!
-    charge: String!
+    stripeChargeId: String!
+    cart: Cart
     createdAt: Date!
     updatedAt: Date!
   }
 
-  type OrderItem {
+  type Media {
     id: ID!
-    title: String!
-    description: String!
-    image: String
-    largeImage: String
-    price: Int!
-    quantity: Int!
-    user: User!
+    type: MediaType
+    url: String
+    publicId: String
     createdAt: Date!
     updatedAt: Date!
+  }
+
+  type LogInResponse {
+    user: User!
+    token: String!
+  }
+
+  type CreateUserResponse {
+    user: User!
+    token: String!
   }
 
   type Mutation {
-    createItem(
+    createProduct(
       title: String
       description: String
       price: Int
       image: String
       largeImage: String
-    ): Item!
-    signup(
-      email: String!
+    ): Product!
+    createUser(
       firstName: String!
       lastName: String!
+      email: String!
       password: String!
-    ): User!
-    signin(email: String!, password: String!): User!
+    ): CreateUserResponse!
+    signin(email: String!, password: String!): LogInResponse!
     signout: SuccessMessage
-    changePassword(
-      oldPassword: String!
-      newPassword: String!
-      passwordHint: String
-    ): SuccessMessage
+    changePassword(oldPassword: String!, newPassword: String!): SuccessMessage
     requestReset(email: String!): SuccessMessage
     resetPassword(
       resetToken: String!
-      password: String!
-      confirmPassword: String!
+      newPassword: String!
+      newPasswordConfirm: String!
     ): User!
     updateUser(
       id: ID!
@@ -161,11 +191,19 @@ const typeDefs = gql`
       measurements: MeasurementsInput
     ): User!
     deleteUser(id: ID!): User!
-    cancelDeleteUser(id: ID!): User!
-    deleteItem(id: ID!): Item
-    updateItem(id: ID!, title: String, description: String, price: Int): Item!
-    addToBag(id: ID!): User!
-    removeFromBag(id: ID!): BagItem
+    deleteProduct(id: ID!): Product
+    updateProduct(
+      id: ID!
+      title: String
+      description: String
+      price: Int
+    ): Product!
+    updateCart(
+      addProducts: [String]
+      removeProducts: [String]
+      addServices: [String]
+      removeServices: [String]
+    ): Cart!
     createOrder(token: String!): Order!
     requestLaunchNotification(
       firstName: String!

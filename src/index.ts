@@ -3,17 +3,16 @@ import { ApolloServerPluginDrainHttpServer } from 'apollo-server-core';
 import express from 'express';
 import http from 'http';
 import cors from 'cors';
+import path from 'path';
 import cookieParser from 'cookie-parser';
 import dotenv from 'dotenv';
 import * as Sentry from '@sentry/node';
 import morgan from 'morgan';
-import mongoose from 'mongoose';
 import { createContext } from './context';
 import Mutation from './resolvers/Mutation';
 import Query from './resolvers/Query';
 import Custom from './resolvers/Custom';
 import typeDefs from './resolvers/typeDefs';
-import User from './models/User';
 
 dotenv.config();
 
@@ -23,22 +22,13 @@ Sentry.init({
   dsn: 'https://c3eb06446d2240638d912d749392ac15@sentry.io/3399012',
 });
 
-// Connect to the Database and handle any bad connections
-mongoose.connect(process.env.DATABASE_ENDPOINT, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-});
-mongoose.connection.on('error', (err: Error) => {
-  console.error(`🙅 🚫 🙅 🚫 🙅 🚫 🙅 🚫 → ${err.message}`);
-});
-
 const resolvers = {
   Mutation,
   Query,
   ...Custom,
 };
 
-const startApolloServer = async (typeDefs, resolvers) => {
+const startApolloServer = async () => {
   const app = express();
   const httpServer = http.createServer(app);
 
@@ -70,7 +60,7 @@ const startApolloServer = async (typeDefs, resolvers) => {
   app.use(cors(corsOptions));
 
   // static files
-  app.use(express.static(__dirname + '/public'));
+  app.use(express.static(path.join(__dirname, '/public')));
 
   // log all requests to the console
   if (process.env.SILENCE_LOGS !== 'true') {
@@ -102,4 +92,4 @@ const startApolloServer = async (typeDefs, resolvers) => {
   );
 };
 
-startApolloServer(typeDefs, resolvers);
+startApolloServer();
