@@ -157,13 +157,7 @@ const typeDefs = gql`
   }
 
   type Mutation {
-    createProduct(
-      title: String
-      description: String
-      price: Int
-      image: String
-      largeImage: String
-    ): Product!
+    createProduct(name: String, description: String, price: Int): Product!
     createUser(
       firstName: String!
       lastName: String!

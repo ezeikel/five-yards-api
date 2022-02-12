@@ -131,15 +131,19 @@ const Mutation = {
       console.error({ error });
     }
   },
-  createProduct: async (parent, { title, description, price }, context) =>
+  createProduct: async (
+    parent,
+    { name, description, price },
+    context: Context,
+  ) =>
     context.prisma.product.create({
       data: {
-        title,
+        name,
         description,
         // media, // TODO: add function that creates media in cloudinary
         price,
-        connect: {
-          seller: {
+        seller: {
+          connect: {
             id: context.user.id,
           },
         },
