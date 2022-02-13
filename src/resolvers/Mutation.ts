@@ -149,6 +149,24 @@ const Mutation = {
         },
       },
     }),
+  createService: async (
+    parent,
+    { name, description, price },
+    context: Context,
+  ) =>
+    context.prisma.service.create({
+      data: {
+        name,
+        description,
+        // media, // TODO: add function that creates media in cloudinary
+        price,
+        seller: {
+          connect: {
+            id: context.user.id,
+          },
+        },
+      },
+    }),
   requestLaunchNotification: async (parent, { firstName, email }) => {
     const mcData = {
       members: [
@@ -432,124 +450,277 @@ const Mutation = {
         deletedAt: new Date(),
       },
     }),
-  updateProduct: (parent, { id, title, description }, context: Context) =>
+  updateProduct: (parent, { id, name, description }, context: Context) =>
     context.prisma.product.update({
       where: {
         id,
       },
       data: {
-        title,
+        name,
         description,
         // TODO: add more update fields
       },
     }),
   updateCart: async (
     parent,
-    { addProducts, removeProducts, addServices, removeServices },
+    { id, addProducts, removeProducts, addServices, removeServices },
     context: Context,
   ) => {
-    const cart = await context.prisma.cart.findFirst({
-      where: {
-        user: context.user.id,
-        processed: false,
-      },
-      select: {
-        id: true,
-        cartItems: {
+    let cart;
+    // either get cart using cart id if supplied or use user id
+    cart = id
+      ? await context.prisma.cart.findUnique({
+          where: {
+            id,
+          },
           select: {
             id: true,
-            product: {
+            cartItems: {
               select: {
                 id: true,
+                product: {
+                  select: {
+                    id: true,
+                  },
+                },
+                service: {
+                  select: {
+                    id: true,
+                  },
+                },
+                quantity: true,
+              },
+            },
+          },
+        })
+      : await context.prisma.cart.findFirst({
+          where: {
+            user: {
+              is: {
+                id: context.user.id,
+              },
+            },
+            processed: false,
+          },
+          select: {
+            id: true,
+            cartItems: {
+              select: {
+                id: true,
+                product: {
+                  select: {
+                    id: true,
+                  },
+                },
+                service: {
+                  select: {
+                    id: true,
+                  },
+                },
+                quantity: true,
+              },
+            },
+          },
+        });
+
+    if (cart) {
+      await asyncForEach(addProducts, async productToAdd => {
+        const [existingCartItemForProduct] = cart.cartItems.filter(
+          cartItem => cartItem.product?.id === productToAdd,
+        );
+
+        if (existingCartItemForProduct) {
+          await context.prisma.cartItem.update({
+            where: {
+              id: existingCartItemForProduct.id,
+            },
+            data: {
+              quantity: existingCartItemForProduct.quantity + 1,
+            },
+          });
+        } else {
+          await context.prisma.cartItem.create({
+            data: {
+              cart: {
+                connect: {
+                  id: cart.id,
+                },
+              },
+              product: {
+                connect: {
+                  id: productToAdd,
+                },
+              },
+            },
+          });
+        }
+      });
+
+      await asyncForEach(removeProducts, async productToRemove => {
+        const [existingCartItemForProduct] = cart.cartItems.filter(
+          cartItem => cartItem.product?.id === productToRemove,
+        );
+
+        if (existingCartItemForProduct) {
+          const { quantity } = existingCartItemForProduct;
+
+          if (quantity > 1) {
+            await context.prisma.cartItem.update({
+              where: {
+                id: existingCartItemForProduct.id,
+              },
+              data: {
+                quantity: existingCartItemForProduct.quantity - 1,
+              },
+            });
+          } else {
+            // if quantity is 1 then delete cart item instead of decreasing quantity
+            await context.prisma.cartItem.delete({
+              where: {
+                id: existingCartItemForProduct.id,
+              },
+            });
+          }
+        }
+      });
+
+      await asyncForEach(addServices, async serviceToAdd => {
+        const [existingCartItemForService] = cart.cartItems.filter(
+          cartItem => cartItem.service?.id === serviceToAdd,
+        );
+
+        if (existingCartItemForService) {
+          await context.prisma.cartItem.update({
+            where: {
+              id: existingCartItemForService.id,
+            },
+            data: {
+              quantity: existingCartItemForService.quantity + 1,
+            },
+          });
+        } else {
+          await context.prisma.cartItem.create({
+            data: {
+              cart: {
+                connect: {
+                  id: cart.id,
+                },
+              },
+              service: {
+                connect: {
+                  id: serviceToAdd,
+                },
+              },
+            },
+          });
+        }
+      });
+
+      await asyncForEach(removeServices, async serviceToRemove => {
+        const [existingCartItemForService] = cart.cartItems.filter(
+          cartItem => cartItem.service?.id === serviceToRemove,
+        );
+
+        if (existingCartItemForService) {
+          const { quantity } = existingCartItemForService;
+
+          if (quantity > 1) {
+            await context.prisma.cartItem.update({
+              where: {
+                id: existingCartItemForService.id,
+              },
+              data: {
+                quantity: existingCartItemForService.quantity - 1,
+              },
+            });
+          } else {
+            // if quantity is 1 then delete cart item instead of decreasing quantity
+            await context.prisma.cartItem.delete({
+              where: {
+                id: existingCartItemForService.id,
+              },
+            });
+          }
+        }
+      });
+    } else {
+      // no in progress cart found so create one
+      cart = await context.prisma.cart.create({
+        data: {
+          user: {
+            connect: {
+              id: context.user.id,
+            },
+          },
+        },
+        select: {
+          id: true,
+          cartItems: {
+            select: {
+              id: true,
+              product: {
+                select: {
+                  id: true,
+                },
+              },
+              service: {
+                select: {
+                  id: true,
+                },
+              },
+              quantity: true,
+            },
+          },
+        },
+      });
+
+      // add products to new cart
+      await asyncForEach(addProducts, async productToAdd => {
+        await context.prisma.cartItem.create({
+          data: {
+            cart: {
+              connect: {
+                id: cart.id,
+              },
+            },
+            product: {
+              connect: {
+                id: productToAdd,
+              },
+            },
+          },
+        });
+      });
+
+      // add services to new cart
+      await asyncForEach(addServices, async serviceToAdd => {
+        await context.prisma.cartItem.create({
+          data: {
+            cart: {
+              connect: {
+                id: cart.id,
               },
             },
             service: {
-              select: {
-                id: true,
+              connect: {
+                id: serviceToAdd,
               },
             },
-            quantity: true,
-          },
-        },
-      },
-    });
-
-    await asyncForEach(addProducts, async productToAdd => {
-      const [existingCartItemForProduct] = cart.cartItems.filter(
-        cartItem => cartItem.product.id === productToAdd,
-      );
-
-      if (existingCartItemForProduct) {
-        await context.prisma.cartItem.update({
-          where: {
-            id: existingCartItemForProduct.id,
-          },
-          data: {
-            quantity: existingCartItemForProduct.quantity + 1,
           },
         });
-      }
-    });
+      });
+    }
 
-    await asyncForEach(removeProducts, async productToRemove => {
-      const [existingCartItemForProduct] = cart.cartItems.filter(
-        cartItem => cartItem.product.id === productToRemove,
-      );
-
-      if (existingCartItemForProduct) {
-        await context.prisma.cartItem.update({
-          where: {
-            id: existingCartItemForProduct.id,
-          },
-          data: {
-            quantity: existingCartItemForProduct.quantity - 1,
-          },
-        });
-      }
-    });
-
-    await asyncForEach(addServices, async serviceToAdd => {
-      const [existingCartItemForService] = cart.cartItems.filter(
-        cartItem => cartItem.product.id === serviceToAdd,
-      );
-
-      if (existingCartItemForService) {
-        await context.prisma.cartItem.update({
-          where: {
-            id: existingCartItemForService.id,
-          },
-          data: {
-            quantity: existingCartItemForService.quantity + 1,
-          },
-        });
-      }
-    });
-
-    await asyncForEach(removeServices, async serviceToRemove => {
-      const [existingCartItemForService] = cart.cartItems.filter(
-        cartItem => cartItem.product.id === serviceToRemove,
-      );
-
-      if (existingCartItemForService) {
-        await context.prisma.cartItem.update({
-          where: {
-            id: existingCartItemForService.id,
-          },
-          data: {
-            quantity: existingCartItemForService.quantity - 1,
-          },
-        });
-      }
-    });
-
-    // TODO: might need to refetch this as relations would have been updated since
+    // TODO: might need to refetch this as relations would have been updated since if cart already existed
     return cart;
   },
   createOrder: async (parent, { token }, context: Context) => {
     // get cart for logged in user
     const cart = await context.prisma.cart.findFirst({
       where: {
-        user: context.user.id,
+        user: {
+          id: context.user.id,
+        },
       },
       select: {
         id: true,

@@ -1,5 +1,6 @@
 import { GraphQLScalarType } from 'graphql';
 import { Kind } from 'graphql/language';
+import md5 from 'md5';
 
 const Custom = {
   Date: new GraphQLScalarType({
@@ -18,6 +19,12 @@ const Custom = {
       return null;
     },
   }),
+  User: {
+    gravatar: parent => {
+      const hash = md5(parent.email);
+      return `https://gravatar.com/avatar/${hash}?s=200`;
+    },
+  },
 };
 
 export default Custom;

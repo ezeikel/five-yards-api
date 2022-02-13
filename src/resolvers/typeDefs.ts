@@ -42,8 +42,11 @@ const typeDefs = gql`
     users: [User]!
     product(id: ID!): Product
     products: [Product]!
+    service(id: ID!): Service
+    services: [Service]!
     order(id: ID!): Order
     orders: [Order]!
+    cart: Cart
   }
 
   type SuccessMessage {
@@ -95,7 +98,10 @@ const typeDefs = gql`
     id: ID!
     total: Int
     processed: Boolean
+    abandoned: Boolean
     user: User
+    order: Order
+    cartItems: [CartItem!]
     createdAt: Date!
     updatedAt: Date!
   }
@@ -123,6 +129,7 @@ const typeDefs = gql`
     resetToken: String
     resetTokenExpiry: String
     cart: [CartItem!]
+    gravatar: String
     requestedDeletion: Boolean!
     createdAt: Date!
     updatedAt: Date!
@@ -158,6 +165,7 @@ const typeDefs = gql`
 
   type Mutation {
     createProduct(name: String, description: String, price: Int): Product!
+    createService(name: String, description: String, price: Int): Service!
     createUser(
       firstName: String!
       lastName: String!
@@ -185,11 +193,12 @@ const typeDefs = gql`
     deleteProduct(id: ID!): Product
     updateProduct(
       id: ID!
-      title: String
+      name: String
       description: String
       price: Int
     ): Product!
     updateCart(
+      id: ID
       addProducts: [String]
       removeProducts: [String]
       addServices: [String]
