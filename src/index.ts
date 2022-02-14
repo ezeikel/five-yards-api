@@ -19,7 +19,7 @@ dotenv.config();
 Sentry.init({
   enabled: process.env.NODE_ENV === 'production',
   environment: process.env.NODE_ENV,
-  dsn: 'https://c3eb06446d2240638d912d749392ac15@sentry.io/3399012',
+  dsn: process.env.SENTRY_DSN,
 });
 
 const resolvers = {

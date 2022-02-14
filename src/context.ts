@@ -7,6 +7,7 @@ const prisma = new PrismaClient({
 
 export type Context = {
   prisma: PrismaClient;
+  req: any; // TODO: fix any
   res: any; // TODO: fix any
   user: any; // TODO: fix any
 };
@@ -41,5 +42,5 @@ export const createContext = async ({ req }: any): Promise<Context> => {
   const { token } = req.cookies;
   const user = await getUser(token);
 
-  return { prisma, res: req.res, user };
+  return { prisma, req, res: req.res, user };
 };

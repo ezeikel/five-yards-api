@@ -1,20 +1,22 @@
 /* eslint no-console: ["error", { allow: ["warn", "error", "log"] }] */
 const fs = require('fs');
-const writeFile = fs.writeFile;
+
+const { writeFile } = fs;
 const defaults = require('../process.defaults');
 
 // variables needed by the server
 const keys = [
   'APP_SECRET',
-  'PORT',
-  'DATABASE_URL',
   'FRONTEND_URL',
+  'PORT',
+  'STRIPE_SECRET_KEY',
+  'DATABASE_URL',
   'MAILCHIMP_KEY',
   'MAIL_HOST',
-  'MAIL_PASS',
   'MAIL_PORT',
   'MAIL_USER',
-  'STRIPE_SECRET_KEY',
+  'MAIL_PASS',
+  'SENTRY_DSN',
 ];
 
 let contents =
@@ -26,7 +28,7 @@ keys.forEach(key => {
   if (typeof val === 'string') {
     val = `"${val}"`;
   }
-  contents += `\n${key} = ${val}`;
+  contents += `\n${key}=${val}`;
 });
 
 writeFile('./.env', contents, err => {

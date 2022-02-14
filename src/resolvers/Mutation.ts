@@ -1,4 +1,3 @@
-import Stripe from 'stripe';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { promisify } from 'util';
@@ -10,15 +9,19 @@ import { User } from '@prisma/client';
 import { Context } from '../context';
 import { asyncForEach, generateStripeAccountLink } from '../utils';
 import { transport, makeNiceEmail } from '../mail';
+import stripe from '../stripe';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: '2020-08-27',
-});
+type CreateUserArgs = {
+  firstName: string;
+  lastName: string;
+  email: string;
+  password: string;
+};
 
 const now = () => Math.round(new Date().getTime() / 1000);
 
 const Mutation = {
-  onboardStripeUser: async (parent, args, { req }) => {
+  onboardStripeUser: async (parent: any, args, { req }) => {
     // https://stripe.com/docs/connect/collect-then-transfer-guide
 
     try {
@@ -35,7 +38,7 @@ const Mutation = {
       throw new Error(err.message);
     }
   },
-  onboardStripeRefresh: async (parent, args, { req }) => {
+  onboardStripeRefresh: async (parent: any, args, { req }) => {
     if (!req.session.accountID) {
       throw new Error('No accountID found for session.');
       // res.redirect("/");
@@ -58,7 +61,7 @@ const Mutation = {
     }
   },
   createStripeAccount: async (
-    parent,
+    parent: any,
     {
       // external_account,
       url,
@@ -69,7 +72,7 @@ const Mutation = {
       city,
       postal_code,
     },
-    { req },
+    { req }: Context,
   ) => {
     try {
       // TODO: do this on front end?
@@ -132,7 +135,7 @@ const Mutation = {
     }
   },
   createProduct: async (
-    parent,
+    parent: any,
     { name, description, price },
     context: Context,
   ) =>
@@ -150,7 +153,7 @@ const Mutation = {
       },
     }),
   createService: async (
-    parent,
+    parent: any,
     { name, description, price },
     context: Context,
   ) =>
@@ -167,7 +170,7 @@ const Mutation = {
         },
       },
     }),
-  requestLaunchNotification: async (parent, { firstName, email }) => {
+  requestLaunchNotification: async (parent: any, { firstName, email }) => {
     const mcData = {
       members: [
         {
@@ -200,7 +203,7 @@ const Mutation = {
   },
   createUser: async (
     parent: any,
-    { firstName, lastName, email, password },
+    { firstName, lastName, email, password }: CreateUserArgs,
     context: Context,
   ) => {
     email = email.toLowerCase();
@@ -241,7 +244,7 @@ const Mutation = {
       token,
     };
   },
-  logIn: async (parent, { email, password }, context: Context) => {
+  logIn: async (parent: any, { email, password }, context: Context) => {
     // check if there is a user with this email
     const user = await context.prisma.user.findUnique({
       where: {
@@ -290,7 +293,7 @@ const Mutation = {
   },
   // TODO: this should just be part of updateUser
   changePassword: async (
-    parent,
+    parent: any,
     { oldPassword, newPassword },
     context: Context,
   ) => {
@@ -323,7 +326,7 @@ const Mutation = {
       console.error(error);
     }
   },
-  requestReset: async (parent, { email }, context: Context) => {
+  requestReset: async (parent: any, { email }, context: Context) => {
     const user = await context.prisma.user.findUnique({
       where: {
         email,
@@ -365,7 +368,7 @@ const Mutation = {
     return { message: 'Thanks!' };
   },
   resetPassword: async (
-    parent,
+    parent: any,
     { newPassword, newPasswordConfirm, resetToken },
     context: Context,
   ) => {
@@ -415,7 +418,7 @@ const Mutation = {
     return updatedUser;
   },
   updateUser: (
-    parent,
+    parent: any,
     { firstName, lastName, gender, email, phoneNumber }: User,
     context: Context,
   ) =>
@@ -432,7 +435,7 @@ const Mutation = {
         // TODO: add measurements too
       },
     }),
-  deleteUser: (parent, { id }, context: Context) =>
+  deleteUser: (parent: any, { id }, context: Context) =>
     context.prisma.user.update({
       where: {
         id,
@@ -441,7 +444,7 @@ const Mutation = {
         deletedAt: new Date(),
       },
     }),
-  deleteProduct: (parent, { id }, context: Context) =>
+  deleteProduct: (parent: any, { id }, context: Context) =>
     context.prisma.product.update({
       where: {
         id,
@@ -450,7 +453,7 @@ const Mutation = {
         deletedAt: new Date(),
       },
     }),
-  updateProduct: (parent, { id, name, description }, context: Context) =>
+  updateProduct: (parent: any, { id, name, description }, context: Context) =>
     context.prisma.product.update({
       where: {
         id,
@@ -462,7 +465,7 @@ const Mutation = {
       },
     }),
   updateCart: async (
-    parent,
+    parent: any,
     { id, addProducts, removeProducts, addServices, removeServices },
     context: Context,
   ) => {
@@ -714,7 +717,7 @@ const Mutation = {
     // TODO: might need to refetch this as relations would have been updated since if cart already existed
     return cart;
   },
-  createOrder: async (parent, { token }, context: Context) => {
+  createOrder: async (parent: any, { token }, context: Context) => {
     // get cart for logged in user
     const cart = await context.prisma.cart.findFirst({
       where: {
