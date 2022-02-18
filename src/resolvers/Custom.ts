@@ -1,4 +1,5 @@
 import { GraphQLScalarType } from 'graphql';
+import { GraphQLUpload } from 'graphql-upload';
 import { Kind } from 'graphql/language';
 import md5 from 'md5';
 
@@ -19,8 +20,9 @@ const Custom = {
       return null;
     },
   }),
+  Upload: GraphQLUpload,
   User: {
-    gravatar: parent => {
+    gravatar: (parent: any) => {
       const hash = md5(parent.email);
       return `https://gravatar.com/avatar/${hash}?s=200`;
     },

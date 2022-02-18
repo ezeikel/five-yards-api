@@ -1,4 +1,4 @@
-const asyncForEach = async (array, callback) => {
+const asyncForEach = async (array: any[], callback: any) => {
   if (!array) return;
 
   for (let index = 0; index < array.length; index += 1) {

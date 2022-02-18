@@ -1,10 +1,22 @@
 {
   "compilerOptions": {
-    // because we're compiling with Babel instead of TypeScript
-    // and we're only using TypeScript for type checking, we'll set "noEmit"
-    // to true so running type checking doesn't generate any files.
-    "noEmit": true,
-    "baseUrl": "./src",
-    "esModuleInterop": true
-  }
+    "preserveConstEnums": true,
+    "strictNullChecks": false, // TODO: enable this
+    "inlineSources": true,
+    "inlineSourceMap": true,
+    "sourceRoot": "/",
+    "target": "esnext",
+    "outDir": ".build",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "lib": ["esnext"],
+    "rootDir": "./src",
+    "resolveJsonModule": true,
+    "allowJs": true,
+    "isolatedModules": true,
+    "noImplicitAny": true
+  },
+  "include": ["./src/**/*.ts"],
+  "exclude": ["node_modules"]
 }

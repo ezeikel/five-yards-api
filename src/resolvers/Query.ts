@@ -1,10 +1,22 @@
-import { Context } from 'context';
+import { Context } from '../context';
+
+type ProductArgs = {
+  id: string;
+};
+
+type ServiceArgs = {
+  id: string;
+};
+
+type OrderArgs = {
+  id: string;
+};
 
 const Query = {
   // secret: () => {
   //   const intent = res.json({ client_secret: intent.client_secret }); // ... Fetch or create the PaymentIntent
   // },
-  currentUser: (parent: any, args, context: Context) => {
+  currentUser: (parent: any, args: any, context: Context) => {
     if (!context.user) {
       return null;
     }
@@ -15,9 +27,9 @@ const Query = {
       },
     });
   },
-  users: (parent: any, args, context: Context) =>
+  users: (parent: any, args: any, context: Context) =>
     context.prisma.user.findMany(),
-  product: (parent: any, { id }, context: Context) =>
+  product: (parent: any, { id }: ProductArgs, context: Context) =>
     context.prisma.product.findUnique({
       where: { id },
       select: {
@@ -34,7 +46,7 @@ const Query = {
         },
       },
     }),
-  products: (parent: any, args, context: Context) =>
+  products: (parent: any, args: any, context: Context) =>
     context.prisma.product.findMany({
       where: {
         seller: {
@@ -57,7 +69,7 @@ const Query = {
         },
       },
     }),
-  service: (parent: any, { id }, context: Context) =>
+  service: (parent: any, { id }: ServiceArgs, context: Context) =>
     context.prisma.service.findUnique({
       where: { id },
       select: {
@@ -74,7 +86,7 @@ const Query = {
         },
       },
     }),
-  services: (parent: any, args, context: Context) =>
+  services: (parent: any, args: any, context: Context) =>
     context.prisma.service.findMany({
       where: {
         seller: {
@@ -97,7 +109,7 @@ const Query = {
         },
       },
     }),
-  cart: async (parent: any, args, context: Context) => {
+  cart: async (parent: any, args: any, context: Context) => {
     const cart =
       (await context.prisma.cart.findFirst({
         where: {
@@ -160,9 +172,9 @@ const Query = {
 
     return cart;
   },
-  order: (parent: any, { id }, context: Context) =>
+  order: (parent: any, { id }: OrderArgs, context: Context) =>
     context.prisma.order.findUnique({ where: { id } }),
-  orders: (parent: any, args, context: Context) =>
+  orders: (parent: any, args: any, context: Context) =>
     context.prisma.order.findMany({
       where: {
         cart: {

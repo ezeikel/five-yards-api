@@ -20,3 +20,5 @@ declare namespace NodeJS {
     ACCESS_TOKEN_SECRET: string;
   }
 }
+
+export {};

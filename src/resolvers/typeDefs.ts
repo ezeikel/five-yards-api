@@ -1,7 +1,8 @@
-import { gql } from 'apollo-server-express';
+import { gql } from 'apollo-server-lambda';
 
 const typeDefs = gql`
   scalar Date
+  scalar Upload
 
   enum Permission {
     ADMIN

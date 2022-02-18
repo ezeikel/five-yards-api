@@ -1,0 +1,65 @@
+org: ezeikel
+app: five-yards-api
+service: apollo-lambda
+variablesResolutionMode: 20210326
+
+frameworkVersion: '2'
+
+# TODO: work out how to have conditional variable values
+
+provider:
+  name: aws
+  runtime: nodejs14.x
+  region: eu-west-2
+  environment:
+    FRONTEND_URL: 'https://fiveyards.co'
+    DATABASE_URL: ${ssm:/five-yards/keys/mongodb}
+    SENTRY_DSN: ${ssm:/five-yards/keys/sentry}
+    PORT: 7000
+    APP_SECRET: ${ssm:/five-yards/keys/app-secret}
+    STRIPE_SECRET_KEY: ${ssm:/five-yards/keys/stripe}
+    MAIL_HOST: 'smtp.postmarkapp.com'
+    MAIL_PORT: 2525
+    MAIL_USER: ${ssm:/five-yards/keys/postmark}
+    MAIL_PASS: ${ssm:/five-yards/keys/postmark}
+  apiGateway:
+    binaryMediaTypes:
+      - '*/*'
+  lambdaHashingVersion: 20201221
+
+plugins:
+  - serverless-webpack
+  - serverless-offline-variables
+  - serverless-offline
+  - serverless-domain-manager
+
+custom:
+  # customDomain:
+  #   domainName: api.fiveyards.co
+  #   basePath: graphql
+  #   createRoute53Record: true
+  serverless-offline:
+    printOutput: true
+    prefix: graphql
+    httpPort: 7000
+  webpack:
+    webpackConfig: 'webpack.config.js' # Name of webpack configuration file
+    includeModules: true # Node modules configuration for packaging
+    packagerOptions:
+      scripts: # this is the magic
+        - npx prisma generate
+    packager: 'yarn' # Packager that will be used to package your external modules
+    excludeFiles: src/**/*.test.js # Provide a glob for files to ignore
+
+functions:
+  graphql:
+    handler: src/handlers/graphql.handler
+    events:
+      - http:
+          path: /
+          method: post
+          cors: true
+      - http:
+          path: /
+          method: get
+          cors: true
