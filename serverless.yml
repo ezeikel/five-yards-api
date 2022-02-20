@@ -1,6 +1,6 @@
 org: ezeikel
 app: five-yards-api
-service: apollo-lambda
+service: five-yards-apollo-lambda
 
 frameworkVersion: '3'
 
