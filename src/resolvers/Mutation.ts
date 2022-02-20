@@ -2,7 +2,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { promisify } from 'util';
 import { randomBytes } from 'crypto';
-import rp from 'request-promise';
+import axios from 'axios';
 import addHours from 'date-fns/addHours';
 import subHours from 'date-fns/subHours';
 import { User } from '@prisma/client';
@@ -261,17 +261,13 @@ const Mutation = {
 
     const mcDataPost = JSON.stringify(mcData);
 
-    const options = {
-      url: 'https://us20.api.mailchimp.com/3.0/lists/74779c67e7',
-      method: 'POST',
-      headers: {
-        Authorization: `auth ${process.env.MAILCHIMP_KEY}`,
-      },
-      body: mcDataPost,
-    };
-
     try {
-      await rp(options);
+      await axios.post('https://us20.api.mailchimp.com/3.0/lists/74779c67e7', {
+        headers: {
+          Authorization: `auth ${process.env.MAILCHIMP_KEY}`,
+        },
+        data: mcDataPost,
+      });
       return { message: 'Success.' };
     } catch (error) {
       return { message: 'Failed.' };

@@ -4,12 +4,10 @@ const slsw = require('serverless-webpack');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 
-const { isLocal } = slsw.lib.webpack;
-
 module.exports = {
-  mode: isLocal ? 'development' : 'production',
+  mode: slsw.lib.webpack.isLocal ? 'development' : 'production',
   entry: slsw.lib.entries,
-  externals: [nodeExternals()],
+  externals: ['aws-sdk', nodeExternals()],
   devtool: 'source-map',
   resolve: {
     extensions: ['.js', '.json', '.ts'],

@@ -1,11 +1,8 @@
 org: ezeikel
 app: five-yards-api
 service: apollo-lambda
-variablesResolutionMode: 20210326
 
-frameworkVersion: '2'
-
-# TODO: work out how to have conditional variable values
+frameworkVersion: '3'
 
 provider:
   name: aws
@@ -15,7 +12,6 @@ provider:
     FRONTEND_URL: 'https://fiveyards.co'
     DATABASE_URL: ${ssm:/five-yards/keys/mongodb}
     SENTRY_DSN: ${ssm:/five-yards/keys/sentry}
-    PORT: 7000
     APP_SECRET: ${ssm:/five-yards/keys/app-secret}
     STRIPE_SECRET_KEY: ${ssm:/five-yards/keys/stripe}
     MAIL_HOST: 'smtp.postmarkapp.com'
@@ -25,19 +21,19 @@ provider:
   apiGateway:
     binaryMediaTypes:
       - '*/*'
-  lambdaHashingVersion: 20201221
 
 plugins:
   - serverless-webpack
+  - serverless-webpack-prisma
   - serverless-offline-variables
   - serverless-offline
   - serverless-domain-manager
 
 custom:
-  # customDomain:
-  #   domainName: api.fiveyards.co
-  #   basePath: graphql
-  #   createRoute53Record: true
+  customDomain:
+    domainName: api.fiveyards.co
+    basePath: graphql
+    createRoute53Record: true
   serverless-offline:
     printOutput: true
     prefix: graphql
@@ -45,9 +41,6 @@ custom:
   webpack:
     webpackConfig: 'webpack.config.js' # Name of webpack configuration file
     includeModules: true # Node modules configuration for packaging
-    packagerOptions:
-      scripts: # this is the magic
-        - npx prisma generate
     packager: 'yarn' # Packager that will be used to package your external modules
     excludeFiles: src/**/*.test.js # Provide a glob for files to ignore
 
@@ -58,8 +51,18 @@ functions:
       - http:
           path: /
           method: post
-          cors: true
+          cors:
+            origin: https://www.fiveyards.co
+            headers:
+              - Authorization
+              - Content-Type
+            allowCredentials: true
       - http:
           path: /
           method: get
-          cors: true
+          cors:
+            origin: https://www.fiveyards.co
+            headers:
+              - Authorization
+              - Content-Type
+            allowCredentials: true

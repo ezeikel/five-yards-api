@@ -1,11 +1,9 @@
 import { ApolloServer } from 'apollo-server-lambda';
 import express from 'express';
 import { graphqlUploadExpress } from 'graphql-upload';
-import cors from 'cors';
 import path from 'path';
 import cookieParser from 'cookie-parser';
 import * as Sentry from '@sentry/serverless';
-import morgan from 'morgan';
 import { createContext } from '../context';
 import Mutation from '../resolvers/Mutation';
 import Query from '../resolvers/Query';
@@ -60,16 +58,14 @@ const server = new ApolloServer({
 // eslint-disable-next-line import/prefer-default-export
 export const handler = Sentry.AWSLambda.wrapHandler(
   server.createHandler({
+    expressGetMiddlewareOptions: {
+      cors: corsOptions,
+    },
     expressAppFromMiddleware(middleware) {
       const app = express();
       app.use(cookieParser());
-      app.use(graphqlUploadExpress());
-      app.use(cors(corsOptions));
       app.use(express.static(path.join(__dirname, '/public')));
-      // log all requests to the console
-      if (process.env.SILENCE_LOGS !== 'true') {
-        app.use(morgan('dev'));
-      }
+      app.use(graphqlUploadExpress());
       app.use(middleware);
       return app;
     },
