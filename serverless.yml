@@ -9,18 +9,29 @@ provider:
   runtime: nodejs14.x
   region: eu-west-2
   environment:
-    FRONTEND_URL: 'https://fiveyards.co'
-    DATABASE_URL: ${ssm:/five-yards/keys/mongodb}
-    SENTRY_DSN: ${ssm:/five-yards/keys/sentry}
-    APP_SECRET: ${ssm:/five-yards/keys/app-secret}
+    FRONTEND_URL: ${param:frontend-url, 'http://localhost:3000'}
+    DATABASE_URL: ${param:database-url}
+    SENTRY_DSN: ${param:sentry-dsn}
+    APP_SECRET: ${param:app-secret}
     STRIPE_SECRET_KEY: ${ssm:/five-yards/keys/stripe}
-    MAIL_HOST: 'smtp.postmarkapp.com'
+    MAIL_HOST: ${param:mail-host}
     MAIL_PORT: 2525
-    MAIL_USER: ${ssm:/five-yards/keys/postmark}
-    MAIL_PASS: ${ssm:/five-yards/keys/postmark}
+    MAIL_USER: ${param:mail-user}
+    MAIL_PASS: ${param:mail-pass}
   apiGateway:
     binaryMediaTypes:
-      - '*/*'
+      - 'multipart/form-data'
+
+params:
+  prod:
+    frontend-url: 'https://fiveyards.co'
+    domain: 'api.fiveyards.co'
+  staging:
+    frontend-url: 'https://staging.fiveyards.co'
+    domain: 'staging.api.fiveyards.co'
+  dev:
+    frontend-url: 'https://develop.fiveyards.co'
+    domain: 'develop.api.fiveyards.co'
 
 plugins:
   - serverless-webpack
@@ -31,7 +42,7 @@ plugins:
 
 custom:
   customDomain:
-    domainName: api.fiveyards.co
+    domainName: ${param:domain}
     basePath: graphql
     createRoute53Record: true
   serverless-offline:
@@ -52,7 +63,9 @@ functions:
           path: /
           method: post
           cors:
-            origin: https://www.fiveyards.co
+            origins:
+              - https://*.fiveyards.co
+              - https://studio.apollographql.com
             headers:
               - Authorization
               - Content-Type
@@ -61,7 +74,9 @@ functions:
           path: /
           method: get
           cors:
-            origin: https://www.fiveyards.co
+            origins:
+              - https://*.fiveyards.co
+              - https://studio.apollographql.com
             headers:
               - Authorization
               - Content-Type

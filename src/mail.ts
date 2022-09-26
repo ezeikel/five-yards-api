@@ -19,6 +19,6 @@ export const makeNiceEmail = (text: string): string => `
   ">
     <h2>Hello there!</h2>
     <p>${text}</p>
-    <p>😘, Ezeikel Pemberton</p>
+    <p>Five Yards Team</p>
   </div>
 `;

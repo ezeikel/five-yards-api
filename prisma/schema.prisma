@@ -1,7 +1,6 @@
 generator client {
-  provider        = "prisma-client-js"
-  previewFeatures = ["mongoDb"]
-  binaryTargets   = ["native", "rhel-openssl-1.0.x"]
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "rhel-openssl-1.0.x"]
 }
 
 datasource db {
@@ -46,7 +45,7 @@ enum MediaType {
 }
 
 model User {
-  id               String        @id @default(dbgenerated()) @map("_id") @db.ObjectId
+  id               String        @id @default(auto()) @map("_id") @db.ObjectId
   firstName        String
   lastName         String
   email            String        @unique
@@ -69,7 +68,7 @@ model User {
 
 // TODO: should be an embedded document - https://github.com/prisma/prisma/issues/8272
 model Measurements {
-  id        String   @id @default(dbgenerated()) @map("_id") @db.ObjectId
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
   neck      String
   waist     String
   hips      String
@@ -85,7 +84,7 @@ model Measurements {
 
 // TODO: a lot of these fields are required by stripe
 model Business {
-  id                                  String           @id @default(dbgenerated()) @map("_id") @db.ObjectId
+  id                                  String           @id @default(auto()) @map("_id") @db.ObjectId
   type                                BusinessType     @default(INDIVIDUAL)
   merchantCategoryCode                String
   url                                 String
@@ -125,7 +124,7 @@ model Business {
 
 // TODO: this is required by stripe
 model Representative {
-  id              String   @id @default(dbgenerated()) @map("_id") @db.ObjectId
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
   firstName       String
   lastName        String
   dateOfBirth     DateTime
@@ -145,7 +144,7 @@ model Representative {
 }
 
 model Product {
-  id          String    @id @default(dbgenerated()) @map("_id") @db.ObjectId
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
   name        String
   description String
   media       Media[]
@@ -161,7 +160,7 @@ model Product {
 }
 
 model Service {
-  id          String    @id @default(dbgenerated()) @map("_id") @db.ObjectId
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
   name        String
   description String
   media       Media[]
@@ -177,7 +176,7 @@ model Service {
 }
 
 model Cart {
-  id        String     @id @default(dbgenerated()) @map("_id") @db.ObjectId
+  id        String     @id @default(auto()) @map("_id") @db.ObjectId
   total     Int        @default(0)
   processed Boolean    @default(false)
   abandoned Boolean    @default(false)
@@ -192,7 +191,7 @@ model Cart {
 }
 
 model CartItem {
-  id        String   @id @default(dbgenerated()) @map("_id") @db.ObjectId
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
   quantity  Int      @default(1)
   product   Product? @relation(fields: [productId], references: [id])
   productId String?  @unique @db.ObjectId
@@ -207,7 +206,7 @@ model CartItem {
 }
 
 model Order {
-  id              String   @id @default(dbgenerated()) @map("_id") @db.ObjectId
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
   total           Int
   stripeChargeId  String
   billingAddress  String?
@@ -221,7 +220,7 @@ model Order {
 }
 
 model Media {
-  id                        String    @id @default(dbgenerated()) @map("_id") @db.ObjectId
+  id                        String    @id @default(auto()) @map("_id") @db.ObjectId
   type                      MediaType
   url                       String
   publicId                  String
